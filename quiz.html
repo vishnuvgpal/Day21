@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day21 — Find Your Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:        #1B2A4A;
+    --navy-mid:    #243660;
+    --orange:      #E8501A;
+    --orange-soft: #FDF1EC;
+    --teal:        #0D7680;
+    --teal-soft:   #E5F5F6;
+    --black:       #0E0E0E;
+    --off-white:   #F8F6F2;
+    --grey-100:    #F2F2F0;
+    --grey-300:    #D1CFC9;
+    --grey-500:    #8A8880;
+    --white:       #FFFFFF;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans:  'DM Sans', sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--sans);
+    background: var(--off-white);
+    color: var(--black);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  .quiz-shell {
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .quiz-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--grey-300);
+    background: var(--white);
+    flex-shrink: 0;
+  }
+
+  .quiz-logo {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    grid-column: 2;
+    text-align: center;
+  }
+
+  .quiz-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--grey-500);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    padding: 6px 0;
+    transition: color 0.2s;
+    grid-column: 1;
+  }
+
+  .quiz-back:hover { color: var(--navy); }
+  .quiz-back svg { transition: transform 0.2s; }
+  .quiz-back:hover svg { transform: translateX(-3px); }
+
+  .quiz-step-label {
+    font-size: 12px;
+    color: var(--grey-500);
+    letter-spacing: 0.06em;
+    grid-column: 3;
+    text-align: right;
+  }
+
+  /* ── PROGRESS ── */
+  .quiz-progress {
+    height: 3px;
+    background: var(--grey-300);
+    flex-shrink: 0;
+  }
+  .quiz-progress-bar {
+    height: 100%;
+    background: var(--orange);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* ── BODY ── */
+  .quiz-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── SCREEN ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+
+  .screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .screen.exit {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+
+  .screen-inner {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* ── QUESTION ── */
+  .q-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .q-headline {
+    font-family: var(--serif);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 400;
+    color: var(--navy);
+    line-height: 1.18;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .q-sub {
+    font-size: 14px;
+    color: var(--grey-500);
+    line-height: 1.65;
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+
+  /* ── OPTION CARDS ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .options--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .options--grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1.5px solid var(--grey-300);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    font-family: var(--sans);
+    width: 100%;
+  }
+
+  .opt:hover { border-color: var(--navy); }
+
+  .opt.selected {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+  }
+
+  .opt-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--grey-300);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .opt.selected .opt-icon {
+    border-color: var(--orange);
+    background: var(--orange);
+  }
+
+  .opt-icon svg { opacity: 0; transition: opacity 0.15s; }
+  .opt.selected .opt-icon svg { opacity: 1; }
+
+  /* Tick SVG — inline replace in JS, hardcoded in HTML as checkmark */
+
+  .opt-text {
+    font-size: 15px;
+    color: var(--navy);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .opt-sub {
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* Card style (for grid options) */
+  .opt--card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 10px;
+  }
+
+  .opt--card .opt-icon { margin-bottom: 0; }
+
+  /* ── BODY COMP OPTIONS ── */
+  .body-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .body-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 8px;
+    background: var(--white);
+    border: 1.5px solid var(--grey-300);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .body-opt:hover { border-color: var(--navy); }
+
+  .body-opt.selected {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+  }
+
+  .body-svg { width: 60px; height: 80px; }
+
+  .body-opt-label {
+    font-size: 12px;
+    color: var(--navy);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .body-opt-pct {
+    font-size: 11px;
+    color: var(--grey-500);
+    text-align: center;
+    font-weight: 300;
+  }
+
+  /* ── INPUT FIELDS ── */
+  .input-field {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 16px;
+    font-family: var(--sans);
+    color: var(--navy);
+    background: var(--white);
+    border: 1.5px solid var(--grey-300);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .input-field:focus { border-color: var(--navy); }
+
+  .input-field::placeholder { color: var(--grey-500); }
+
+  .phone-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .phone-prefix {
+    padding: 16px 16px;
+    background: var(--grey-100);
+    border: 1.5px solid var(--grey-300);
+    font-size: 15px;
+    color: var(--navy);
+    font-family: var(--sans);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .otp-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .otp-input {
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 22px;
+    letter-spacing: 0.3em;
+    font-family: var(--sans);
+    color: var(--navy);
+    background: var(--white);
+    border: 1.5px solid var(--grey-300);
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .otp-input:focus { border-color: var(--navy); }
+
+  .otp-input.error { border-color: #C0392B; }
+  .otp-input.success { border-color: var(--teal); }
+
+  .otp-hint {
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .send-otp-btn {
+    padding: 16px 24px;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  .send-otp-btn:hover { opacity: 0.85; }
+  .send-otp-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .error-msg {
+    font-size: 12px;
+    color: #C0392B;
+    margin-top: -4px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── CTA BUTTON ── */
+  .btn-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--orange);
+    color: var(--white);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    padding: 16px 36px;
+    border: none;
+    cursor: pointer;
+    margin-top: 32px;
+    transition: opacity 0.2s, transform 0.2s;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-next:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+  .btn-next svg { transition: transform 0.2s; }
+  .btn-next:hover:not(:disabled) svg { transform: translateX(4px); }
+
+  /* ── RESULTS ── */
+  .result-screen {
+    background: var(--navy);
+    padding: 0;
+    overflow-y: auto;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .result-inner {
+    max-width: 680px;
+    width: 100%;
+    padding: 56px 32px 80px;
+  }
+
+  .result-greeting {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 14px;
+  }
+
+  .result-headline {
+    font-family: var(--serif);
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 300;
+    color: var(--white);
+    line-height: 1.12;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .result-headline em {
+    font-style: italic;
+    color: var(--orange);
+  }
+
+  .result-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 48px;
+    line-height: 1.75;
+    font-weight: 300;
+    max-width: 520px;
+  }
+
+  /* ── STACK CARD ── */
+  .stack-section-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .stack-block {
+    background: rgba(255,255,255,0.04);
+    border-left: 3px solid var(--teal);
+    margin-bottom: 24px;
+    padding: 28px 28px 0;
+  }
+
+  .stack-block--secondary { border-left-color: rgba(13,118,128,0.35); }
+
+  .stack-block-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 0;
+  }
+
+  .stack-block-title {
+    font-family: var(--serif);
+    font-size: 34px;
+    font-weight: 400;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .stack-block-sub {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 6px;
+  }
+
+  .stack-block-timing {
+    font-size: 12px;
+    color: var(--teal);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  .stack-dose-box {
+    text-align: right;
+    flex-shrink: 0;
+    background: rgba(13,118,128,0.12);
+    padding: 14px 20px;
+    border: 1px solid rgba(13,118,128,0.2);
+  }
+
+  .dose-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 4px;
+  }
+
+  .dose-value {
+    font-family: var(--serif);
+    font-size: 26px;
+    color: var(--teal);
+    font-weight: 400;
+  }
+
+  .dose-why {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ── INGREDIENTS ── */
+  .ingredients-section {
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .ingredients-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 16px;
+  }
+
+  .ingredient-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    align-items: start;
+  }
+
+  .ingredient-row:first-of-type { border-top: none; }
+
+  .ingredient-name-col {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    line-height: 1.4;
+  }
+
+  .ingredient-amount {
+    font-size: 11px;
+    color: var(--teal);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  .ingredient-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .ingredient-ref {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--teal);
+    text-decoration: none;
+    margin-top: 5px;
+    border-bottom: 1px solid rgba(13,118,128,0.3);
+    letter-spacing: 0.04em;
+  }
+
+  .ingredient-ref:hover { border-bottom-color: var(--teal); }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    padding: 20px 0 24px;
+  }
+
+  .how-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 14px;
+  }
+
+  .how-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .how-text strong { color: rgba(255,255,255,0.7); font-weight: 500; }
+
+  /* ── WHATSAPP ONBOARDING ── */
+  .wa-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 24px 24px;
+    margin-bottom: 32px;
+  }
+
+  .wa-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .wa-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(37,211,102,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .wa-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: 0.02em;
+  }
+
+  .wa-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wa-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .wa-step-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #25D366;
+    margin-top: 6px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .wa-step-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── ACTIONS ── */
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .btn-primary-result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--orange);
+    color: var(--white);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    padding: 18px 36px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary-result:hover { opacity: 0.88; }
+
+  .btn-expert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: transparent;
+    color: rgba(255,255,255,0.45);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    padding: 15px 36px;
+    border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    width: 100%;
+  }
+
+  .btn-expert:hover {
+    border-color: rgba(255,255,255,0.35);
+    color: var(--white);
+  }
+
+  .result-footnote {
+    margin-top: 28px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.18);
+    line-height: 1.7;
+  }
+
+  /* ── OTP VERIFIED ── */
+  .verified-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--teal);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .verified-badge.show { display: flex; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .quiz-header { padding: 16px 20px; }
+    .screen { padding: 28px 20px; }
+    .body-options { grid-template-columns: repeat(2, 1fr); }
+    .options--grid { grid-template-columns: 1fr; }
+    .options--grid-3 { grid-template-columns: 1fr 1fr; }
+    .result-inner { padding: 36px 20px 60px; }
+    .stack-block { padding: 20px 18px 0; }
+    .stack-block-header { flex-direction: column; gap: 16px; }
+    .stack-dose-box { text-align: left; }
+    .ingredient-row { grid-template-columns: 1fr; gap: 8px; }
+    .ingredient-name-col { font-size: 13px; }
+    .wa-section { padding: 20px 18px; }
+  }
+
+  @media (max-width: 400px) {
+    .body-options { grid-template-columns: repeat(2, 1fr); }
+    .options--grid-3 { grid-template-columns: 1fr; }
+    .q-headline { font-size: 26px; }
+    .stack-block-title { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="quiz-shell">
+
+  <!-- HEADER -->
+  <header class="quiz-header">
+    <button class="quiz-back" id="backBtn" onclick="goBack()" style="visibility:hidden">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </button>
+    <a href="day21.html" class="quiz-logo" onclick="window.location.href='day21.html'; return false;">Day21</a>
+    <span class="quiz-step-label" id="stepLabel"></span>
+  </header>
+
+  <!-- PROGRESS -->
+  <div class="quiz-progress">
+    <div class="quiz-progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- QUIZ BODY -->
+  <div class="quiz-body" id="quizBody">
+
+    <!-- Q1: GOAL -->
+    <div class="screen active" id="screen-0">
+      <div class="screen-inner">
+        <span class="q-label">Let's start</span>
+        <h2 class="q-headline">What's your primary goal?</h2>
+        <p class="q-sub">We'll build your stack around this. You can always refine later.</p>
+        <div class="options">
+          <button class="opt" onclick="selectOpt(this, 'goal', 'sleep')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Sleep better</div>
+              <div class="opt-sub">Fall asleep faster, stay asleep, wake rested</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'goal', 'energy')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">More energy</div>
+              <div class="opt-sub">Cleaner energy, better focus, no crashes</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'goal', 'weight')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Weight management</div>
+              <div class="opt-sub">Appetite control, metabolism support</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'goal', 'all')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">All of the above</div>
+              <div class="opt-sub">I want to work on everything</div>
+            </div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-0" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2: GENDER -->
+    <div class="screen" id="screen-1">
+      <div class="screen-inner">
+        <span class="q-label">About you</span>
+        <h2 class="q-headline">What's your gender?</h2>
+        <p class="q-sub">This helps us calibrate dosage recommendations accurately.</p>
+        <div class="options--grid options">
+          <button class="opt opt--card" onclick="selectOpt(this, 'gender', 'male')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Male</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'gender', 'female')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Female</div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-1" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q3: AGE -->
+    <div class="screen" id="screen-2">
+      <div class="screen-inner">
+        <span class="q-label">About you</span>
+        <h2 class="q-headline">How old are you?</h2>
+        <p class="q-sub">Nutritional needs change across different life stages.</p>
+        <div class="options--grid options">
+          <button class="opt opt--card" onclick="selectOpt(this, 'age', '18-24')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">18 – 24</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'age', '25-34')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">25 – 34</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'age', '35-44')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">35 – 44</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'age', '45+')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">45+</div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-2" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q4: BODY WEIGHT -->
+    <div class="screen" id="screen-3">
+      <div class="screen-inner">
+        <span class="q-label">About you</span>
+        <h2 class="q-headline">What's your body weight?</h2>
+        <p class="q-sub">Used to calculate your personalised dosage.</p>
+        <div class="options--grid options">
+          <button class="opt opt--card" onclick="selectOpt(this, 'weight', 'under60')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Under 60 kg</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'weight', '60-80')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">60 – 80 kg</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'weight', '80-100')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">80 – 100 kg</div>
+          </button>
+          <button class="opt opt--card" onclick="selectOpt(this, 'weight', 'over100')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">100 kg+</div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-3" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q5: BODY COMPOSITION -->
+    <div class="screen" id="screen-4">
+      <div class="screen-inner">
+        <span class="q-label">About you</span>
+        <h2 class="q-headline">Which best describes your body?</h2>
+        <p class="q-sub">Pick the closest match — no need to be precise.</p>
+        <div class="body-options">
+
+          <!-- Lean -->
+          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'lean')">
+            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
+              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#D1CFC9"/>
+              <rect x="22" y="22" width="16" height="28" rx="4" fill="#D1CFC9"/>
+              <rect x="14" y="23" width="7" height="22" rx="3" fill="#D1CFC9"/>
+              <rect x="39" y="23" width="7" height="22" rx="3" fill="#D1CFC9"/>
+              <rect x="22" y="50" width="6" height="24" rx="3" fill="#D1CFC9"/>
+              <rect x="32" y="50" width="6" height="24" rx="3" fill="#D1CFC9"/>
+            </svg>
+            <div class="body-opt-label">Lean</div>
+            <div class="body-opt-pct">~10–15%</div>
+          </button>
+
+          <!-- Athletic -->
+          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'athletic')">
+            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
+              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#B5B3AD"/>
+              <rect x="20" y="22" width="20" height="30" rx="4" fill="#B5B3AD"/>
+              <rect x="12" y="23" width="8" height="24" rx="3" fill="#B5B3AD"/>
+              <rect x="40" y="23" width="8" height="24" rx="3" fill="#B5B3AD"/>
+              <rect x="21" y="52" width="7" height="23" rx="3" fill="#B5B3AD"/>
+              <rect x="32" y="52" width="7" height="23" rx="3" fill="#B5B3AD"/>
+            </svg>
+            <div class="body-opt-label">Athletic</div>
+            <div class="body-opt-pct">~15–22%</div>
+          </button>
+
+          <!-- Average -->
+          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'average')">
+            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
+              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#8A8880"/>
+              <ellipse cx="30" cy="38" rx="13" ry="16" fill="#8A8880"/>
+              <rect x="12" y="23" width="7" height="22" rx="3" fill="#8A8880"/>
+              <rect x="41" y="23" width="7" height="22" rx="3" fill="#8A8880"/>
+              <rect x="20" y="52" width="7" height="23" rx="3" fill="#8A8880"/>
+              <rect x="33" y="52" width="7" height="23" rx="3" fill="#8A8880"/>
+            </svg>
+            <div class="body-opt-label">Average</div>
+            <div class="body-opt-pct">~22–30%</div>
+          </button>
+
+          <!-- Heavy -->
+          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'heavy')">
+            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
+              <ellipse cx="30" cy="12" rx="10" ry="10" fill="#6B6965"/>
+              <ellipse cx="30" cy="40" rx="17" ry="19" fill="#6B6965"/>
+              <rect x="10" y="25" width="8" height="20" rx="3" fill="#6B6965"/>
+              <rect x="42" y="25" width="8" height="20" rx="3" fill="#6B6965"/>
+              <rect x="18" y="56" width="8" height="20" rx="3" fill="#6B6965"/>
+              <rect x="34" y="56" width="8" height="20" rx="3" fill="#6B6965"/>
+            </svg>
+            <div class="body-opt-label">Higher body fat</div>
+            <div class="body-opt-pct">30%+</div>
+          </button>
+
+        </div>
+        <button class="btn-next" id="next-4" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q6: ACTIVITY LEVEL -->
+    <div class="screen" id="screen-5">
+      <div class="screen-inner">
+        <span class="q-label">Your lifestyle</span>
+        <h2 class="q-headline">How active are you?</h2>
+        <p class="q-sub">Be honest — there's no wrong answer here.</p>
+        <div class="options">
+          <button class="opt" onclick="selectOpt(this, 'activity', 'sedentary')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Mostly sedentary</div>
+              <div class="opt-sub">Desk job, light movement through the day</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'activity', 'light')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Lightly active</div>
+              <div class="opt-sub">Walking, occasional exercise</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'activity', 'moderate')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Moderately active</div>
+              <div class="opt-sub">Exercise 2–4 times a week</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'activity', 'active')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Very active</div>
+              <div class="opt-sub">Training 5+ times a week</div>
+            </div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-5" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q7: ENERGY QUESTION (branched) -->
+    <div class="screen" id="screen-6">
+      <div class="screen-inner">
+        <span class="q-label">Your energy</span>
+        <h2 class="q-headline" id="energyQ">Do you struggle to start the morning?</h2>
+        <p class="q-sub" id="energySub">Think about your energy in the first two hours after waking.</p>
+        <div class="options">
+          <button class="opt" onclick="selectOpt(this, 'energy', 'always')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Yes, almost every day</div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'energy', 'sometimes')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Sometimes — depends on the day</div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'energy', 'rarely')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="opt-text">Rarely — I generally feel okay</div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-6" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q8: SLEEP QUESTION (shown if goal = sleep or all) -->
+    <div class="screen" id="screen-7">
+      <div class="screen-inner">
+        <span class="q-label">Your sleep</span>
+        <h2 class="q-headline">How's your sleep right now?</h2>
+        <p class="q-sub">This helps us understand the severity and the right starting dose.</p>
+        <div class="options">
+          <button class="opt" onclick="selectOpt(this, 'sleep', 'bad')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Poor — I rarely sleep well</div>
+              <div class="opt-sub">Takes long to fall asleep, wake up often, feel tired</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'sleep', 'inconsistent')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Inconsistent — good nights and bad nights</div>
+              <div class="opt-sub">No reliable pattern</div>
+            </div>
+          </button>
+          <button class="opt" onclick="selectOpt(this, 'sleep', 'ok')">
+            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="opt-text">Okay — but I want to wake up more rested</div>
+              <div class="opt-sub">Sleep fine but never feel truly recovered</div>
+            </div>
+          </button>
+        </div>
+        <button class="btn-next" id="next-7" onclick="nextScreen()" disabled>
+          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q9: NAME + PHONE -->
+    <div class="screen" id="screen-8">
+      <div class="screen-inner">
+        <span class="q-label">Almost there</span>
+        <h2 class="q-headline">Where should we send your stack?</h2>
+        <p class="q-sub">We'll send your personalised recommendation and a verification code to your phone.</p>
+
+        <input type="text" class="input-field" id="nameInput" placeholder="Your first name" oninput="checkContactForm()">
+
+        <div class="phone-row">
+          <div class="phone-prefix">🇮🇳 +91</div>
+          <input type="tel" class="input-field" id="phoneInput" placeholder="Phone number" maxlength="10" oninput="checkContactForm()" style="margin-bottom:0; flex:1;">
+        </div>
+        <div class="error-msg" id="phoneError">Please enter a valid 10-digit number.</div>
+
+        <button class="btn-next" id="next-8" onclick="sendOTP()" disabled>
+          Send verification code <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q10: OTP -->
+    <div class="screen" id="screen-9">
+      <div class="screen-inner">
+        <span class="q-label">Verification</span>
+        <h2 class="q-headline">Enter your code</h2>
+        <p class="q-sub" id="otpSub">We sent a 4-digit code to your number.</p>
+
+        <div class="verified-badge" id="verifiedBadge">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#0D7680" stroke-width="1.5"/><path d="M5 8l2.5 2.5L11 5.5" stroke="#0D7680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Verified
+        </div>
+
+        <input type="number" class="otp-input" id="otpInput" placeholder="9999" maxlength="4" oninput="checkOTP(this)">
+        <p class="otp-hint" id="otpHint">Enter the 4-digit code. For this demo, use <strong>9999</strong>.</p>
+        <div class="error-msg" id="otpError">Incorrect code. Please try again.</div>
+
+        <button class="btn-next" id="next-9" onclick="nextScreen()" disabled>
+          See my stack <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="screen result-screen" id="screen-10">
+      <div class="result-inner">
+        <div class="result-greeting" id="resultGreeting">Your personalised stack</div>
+        <h2 class="result-headline" id="resultHeadline">We've built your<br>stack. Here's <em>exactly why.</em></h2>
+        <p class="result-sub" id="resultSub">Every ingredient, every dose, calibrated to your profile. Not a generic pack — yours.</p>
+
+        <div id="stackBlocks"></div>
+
+        <!-- WHATSAPP ONBOARDING -->
+        <div class="wa-section">
+          <div class="wa-header">
+            <div class="wa-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M13.6 2.4A7.8 7.8 0 002 11.2L.8 15.2l4.1-1.1A7.8 7.8 0 1013.6 2.4z" fill="#25D366"/>
+                <path d="M11.5 9.8c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.5.1-.1.2-.5.7-.7.8-.1.1-.2.1-.4 0-.2-.1-.9-.3-1.7-1-.6-.6-1-1.2-1.1-1.4-.1-.2 0-.3.1-.4l.3-.4.2-.4v-.4l-.7-1.5c-.2-.4-.4-.3-.5-.3h-.4c-.1 0-.4.1-.6.3C4.1 5.2 3.7 5.7 3.7 6.7c0 1 .7 2 .8 2.1.1.1 1.4 2.2 3.5 3 .5.2.9.3 1.2.4.5.1 1 .1 1.3.1.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1-.1 0-.2-.1-.4-.2z" fill="white"/>
+              </svg>
+            </div>
+            <div class="wa-title">What happens after you order</div>
+          </div>
+          <div class="wa-steps">
+            <div class="wa-step">
+              <div class="wa-step-dot"></div>
+              <div class="wa-step-text">Your stack ships within 24 hours. A confirmation and dosage guide arrives on this number before it does.</div>
+            </div>
+            <div class="wa-step">
+              <div class="wa-step-dot"></div>
+              <div class="wa-step-text">Day 1 — we check in. You tell us you've started. We tell you what to expect in the first week and what not to.</div>
+            </div>
+            <div class="wa-step">
+              <div class="wa-step-dot"></div>
+              <div class="wa-step-text">Every few days — a brief check-in. One question. One answer. We track your progress so you don't have to.</div>
+            </div>
+            <div class="wa-step">
+              <div class="wa-step-dot"></div>
+              <div class="wa-step-text">Day 21 — we show you your progress chart. What changed, what didn't, and what comes next.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <a href="#" class="btn-primary-result">
+            Order my stack
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button class="btn-expert" onclick="window.location.href='mailto:hello@day21.in'">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 6v4M7 4.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Talk to a Day21 expert instead
+          </button>
+        </div>
+
+        <p class="result-footnote">
+          Your stack is built from your quiz responses. A Day21 advisor reviews every order before it ships and will refine your protocol on your first check-in if needed.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /quiz-body -->
+</div><!-- /quiz-shell -->
+
+<script>
+  // ── STATE ──────────────────────────────────────────────────────
+  const answers = {};
+  let currentScreen = 0;
+
+  // Screens that are conditionally skipped
+  // screen-7 (sleep question) only shown if goal = sleep or all
+  const TOTAL_QUESTIONS = 9; // excluding results
+
+  // ── PRODUCT DATA ──────────────────────────────────────────────
+  const productData = {
+    sleep: {
+      name: 'Lights Off',
+      blend: 'Sleep Blend',
+      time: 'Take 30 min before sleep',
+      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
+      doseWhy: {
+        under60:  'At your body weight, 200mg elemental magnesium reaches optimal serum levels for sleep onset support without over-sedation.',
+        '60-80':  '300mg elemental magnesium is the studied efficacious dose for improving sleep quality in adults in your weight range.',
+        '80-100': 'At 80–100kg, tissue distribution requires a higher dose. 400mg ensures adequate magnesium reaches muscle and neurological tissue to support deep sleep architecture.',
+        over100:  'At 100kg+, 400mg across two tablets provides full tissue saturation. The split dose improves absorption compared to a single higher-strength tablet.'
+      },
+      howItWorks: 'Magnesium glycinate crosses the blood-brain barrier more efficiently than other magnesium forms. It binds to GABA receptors — the same receptors targeted by most sleep medications — but without dependency or next-day sedation. The L-Theanine increases alpha brain wave activity, promoting a calm, alert state that transitions naturally into sleep. Melatonin is included at a subclinical dose (0.5mg) to support circadian rhythm signalling without overriding your body\'s natural production. <strong>Most users notice changes in sleep onset time by Day 7–10.</strong> Measurable deep sleep improvements typically register by Day 14.',
+      ingredients: [
+        {
+          name: 'Magnesium Glycinate',
+          amount: '200–400mg elemental',
+          desc: 'The most bioavailable form of magnesium, bound to the amino acid glycine. Glycine itself has independent sleep-supporting properties — it lowers core body temperature, a key signal for sleep onset. Magnesium deficiency (present in ~60% of Indian adults) directly impairs GABA neurotransmission.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/23853635',
+          refLabel: 'PubMed: Magnesium & sleep quality (NHANES, 2012)'
+        },
+        {
+          name: 'L-Theanine',
+          amount: '200mg',
+          desc: 'A non-protein amino acid found in green tea. Increases alpha brain waves (8–12 Hz), associated with relaxed alertness. Reduces physiological and psychological stress responses without causing drowsiness. Works synergistically with magnesium to reduce sleep onset latency.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/19441940',
+          refLabel: 'PubMed: L-Theanine & alpha wave activity (2008)'
+        },
+        {
+          name: 'Melatonin',
+          amount: '0.5mg (subclinical)',
+          desc: 'Intentionally dosed below the 1–5mg range common in most sleep supplements. At 0.5mg, melatonin supports circadian phase-shifting without suppressing endogenous production. Higher doses cause rebound insomnia and next-day grogginess — the exact experience most people have had with off-the-shelf melatonin.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/10611609',
+          refLabel: 'PubMed: Low-dose melatonin efficacy (Lewy et al., 1998)'
+        }
+      ]
+    },
+    energy: {
+      name: 'Switch On',
+      blend: 'Metabolism & Energy Blend',
+      time: 'Take in the morning, with or before first meal',
+      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
+      doseWhy: {
+        under60:  'At your weight, 100mg caffeine with matched L-Theanine provides clean focus without the adrenal stress response of higher doses.',
+        '60-80':  '150mg caffeine with 150mg L-Theanine maintains a 1:1 ratio — the clinically studied pairing that eliminates jitters while preserving alertness.',
+        '80-100': '200mg caffeine is the upper threshold for sustained energy without diminishing returns. Electrolytes are scaled to support a larger body mass through cellular hydration.',
+        over100:  '200mg caffeine split across two tablets improves absorption kinetics. The full electrolyte dose supports a higher body mass and more demanding metabolic baseline.'
+      },
+      howItWorks: 'Caffeine works by blocking adenosine receptors — adenosine is the compound that builds up through the day and signals fatigue. L-Theanine prevents the anxious, jittery side effect by promoting alpha wave activity while caffeine is active. The B-vitamin stack provides cofactors for mitochondrial energy production, meaning your cells convert nutrients to ATP more efficiently. <strong>Switch On is not a stimulant — it is a metabolic support system</strong> that makes the energy you have more accessible. The electrolyte complex ensures that energy isn\'t lost to subclinical dehydration — a state most people are in before 9am.',
+      ingredients: [
+        {
+          name: 'Caffeine Anhydrous',
+          amount: '100–200mg',
+          desc: 'The world\'s most studied cognitive performance compound. Adenosine receptor antagonism improves reaction time, working memory, and sustained attention. Anhydrous form provides consistent absorption compared to caffeine from botanical sources.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/20492310',
+          refLabel: 'PubMed: Caffeine & cognitive performance (Nehlig, 2010)'
+        },
+        {
+          name: 'L-Theanine',
+          amount: '100–200mg (1:1 ratio)',
+          desc: 'Paired at a 1:1 ratio with caffeine — the combination studied extensively for eliminating caffeine side effects while preserving and enhancing its cognitive benefits. The synergy produces a state of "calm alertness" not achieved by either compound alone.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/18681988',
+          refLabel: 'PubMed: Caffeine + L-Theanine synergy (Haskell et al., 2008)'
+        },
+        {
+          name: 'Electrolyte Complex',
+          amount: 'Sodium 200mg, Potassium 150mg, Magnesium 50mg',
+          desc: 'Even mild dehydration (1–2% body weight) reduces cognitive performance by up to 30%. This electrolyte matrix replaces what\'s lost overnight and supports sodium-potassium pumps in neurons — the mechanism behind nerve signal transmission.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/22190027',
+          refLabel: 'PubMed: Dehydration & cognitive performance (Adan, 2012)'
+        },
+        {
+          name: 'B-Vitamin Complex',
+          amount: 'B1, B2, B3, B6, B12 at NRV',
+          desc: 'B vitamins are cofactors for every step of cellular energy production — glycolysis, the citric acid cycle, and oxidative phosphorylation. Deficiency (particularly B12 and B6) is extremely common in India\'s vegetarian population and presents as fatigue, brain fog, and poor exercise recovery.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/26828517',
+          refLabel: 'PubMed: B-vitamins & energy metabolism (Kennedy, 2016)'
+        }
+      ]
+    },
+    weight: {
+      name: 'Lose It',
+      blend: 'Appetite & Metabolism Blend',
+      time: 'Take before meals, twice daily',
+      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
+      doseWhy: {
+        under60:  '5g soluble fibre provides satiety signalling appropriate for your caloric intake level. ALA at 200mg supports insulin sensitivity without hypoglycaemic risk.',
+        '60-80':  'At your weight, 5g fibre is the threshold where GLP-1 release (the natural appetite hormone) is meaningfully stimulated. ALA at 300mg reaches the dose studied for adipose tissue metabolism.',
+        '80-100': '8g fibre and 400mg ALA represent the upper efficacious range — appropriate for higher body mass where satiety signalling requires greater stimulus to overcome habituation.',
+        over100:  'At 100kg+, the full 2-tablet dose ensures fibre volume and ALA reach the therapeutic threshold for your body mass. Consistent twice-daily dosing is particularly important at this level.'
+      },
+      howItWorks: 'Lose It works on two distinct mechanisms. The soluble fibre complex (psyllium husk + beta-glucan) forms a viscous gel in the stomach that slows gastric emptying — physically creating a sense of fullness and reducing postprandial glucose spikes. This triggers the release of GLP-1, the same natural satiety hormone mimicked by pharmaceutical weight loss drugs, but through entirely dietary means. Alpha Lipoic Acid improves insulin sensitivity at the cellular level, meaning your body partitions nutrients toward energy use rather than fat storage. <strong>This is not appetite suppression — it is appetite recalibration</strong>. Within 2–3 weeks, most users report naturally reduced portion sizes and fewer cravings.',
+      ingredients: [
+        {
+          name: 'Soluble Fibre Complex',
+          amount: '5–8g per dose',
+          desc: 'A blend of psyllium husk and oat beta-glucan — both classified as soluble fibre with significant peer-reviewed evidence for appetite reduction, cholesterol modulation, and gut microbiome support. The viscous gel formed in the GI tract creates mechanical satiety, independently of hormonal signalling.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/26724486',
+          refLabel: 'PubMed: Beta-glucan & satiety (Dahl et al., 2015)'
+        },
+        {
+          name: 'Alpha Lipoic Acid (ALA)',
+          amount: '200–400mg',
+          desc: 'A potent mitochondrial antioxidant that improves insulin receptor sensitivity. ALA activates AMPK — a cellular energy sensor that shifts metabolism toward fat oxidation. Multiple trials show reductions in body weight, waist circumference, and fasting insulin in overweight adults over 8–12 weeks.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/21437556',
+          refLabel: 'PubMed: ALA & body weight reduction (Koh et al., 2011)'
+        },
+        {
+          name: 'Chromium Picolinate',
+          amount: '200mcg',
+          desc: 'An essential trace mineral that potentiates insulin action. Chromium deficiency — common in processed food diets — results in blood sugar instability and carbohydrate cravings. Supplementation at 200mcg has been shown to reduce binge eating episodes, carbohydrate cravings, and hunger ratings in clinical trials.',
+          ref: 'https://pubmed.ncbi.nlm.nih.gov/14519826',
+          refLabel: 'PubMed: Chromium & appetite control (Anton et al., 2008)'
+        }
+      ]
+    }
+  };
+
+  // ── RESULTS ───────────────────────────────────────────────────
+  function buildResults() {
+    const name   = answers.name || 'there';
+    const goal   = answers.goal;
+    const weight = answers.weight || '60-80';
+
+    document.getElementById('resultGreeting').textContent = `Hi ${name} — your personalised stack`;
+
+    let primary = 'sleep';
+    if (goal === 'energy') primary = 'energy';
+    if (goal === 'weight') primary = 'weight';
+    if (goal === 'all')    primary = 'sleep';
+
+    const container = document.getElementById('stackBlocks');
+    container.innerHTML = '';
+
+    const renderBlock = (key, isSecondary = false) => {
+      const p = productData[key];
+      const dose = p.doses[weight];
+      const doseWhy = p.doseWhy[weight];
+
+      const block = document.createElement('div');
+      block.innerHTML = `
+        <div class="stack-section-label">${isSecondary ? 'Also recommended for you' : 'Your primary stack'}</div>
+        <div class="stack-block ${isSecondary ? 'stack-block--secondary' : ''}">
+          <div class="stack-block-header">
+            <div>
+              <div class="stack-block-sub">${p.blend}</div>
+              <div class="stack-block-title">${p.name}</div>
+              <div class="stack-block-timing">${p.time}</div>
+            </div>
+            <div class="stack-dose-box">
+              <div class="dose-label">Your dose</div>
+              <div class="dose-value">${dose}</div>
+              <div class="dose-why">${dose === '2 tablets' ? 'Higher dose' : 'Standard dose'}</div>
+            </div>
+          </div>
+
+          <div class="ingredients-section">
+            <div class="ingredients-label">What's in it — and why</div>
+            ${p.ingredients.map(ing => `
+              <div class="ingredient-row">
+                <div>
+                  <div class="ingredient-name-col">${ing.name}</div>
+                  <div class="ingredient-amount">${ing.amount}</div>
+                </div>
+                <div class="ingredient-desc">
+                  ${ing.desc}
+                  <br><a href="${ing.ref}" target="_blank" class="ingredient-ref">↗ ${ing.refLabel}</a>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="how-section">
+            <div class="how-label">Why ${dose} — calibrated to your profile</div>
+            <div class="how-text">${doseWhy}</div>
+          </div>
+
+          <div class="how-section" style="border-top: 1px solid rgba(255,255,255,0.07); padding-top: 20px;">
+            <div class="how-label">How it works</div>
+            <div class="how-text">${p.howItWorks}</div>
+          </div>
+        </div>
+      `;
+      container.appendChild(block);
+    };
+
+    renderBlock(primary);
+    if (goal === 'all') renderBlock('energy', true);
+
+    const weightLabel = { under60: 'under 60kg', '60-80': '60–80kg', '80-100': '80–100kg', over100: '100kg+' }[weight] || weight;
+    const subCopy = {
+      sleep:  `Based on your profile — ${answers.age || '25-34'}, ${weightLabel}, ${answers.activity || 'moderately active'} — we've calibrated Lights Off to the dose and formulation most likely to work for you.`,
+      energy: `Your activity level and body weight shaped this recommendation. Switch On is calibrated for sustained output — not a spike.`,
+      weight: `Lose It works best taken consistently before your two largest meals. The dose is set for your weight bracket to ensure the fibre and ALA reach their therapeutic thresholds.`,
+      all:    `We've started you on your two highest-priority stacks. Your Day21 advisor will refine the full picture on your first check-in.`
+    };
+    document.getElementById('resultSub').textContent = subCopy[goal] || subCopy.sleep;
+  }
+  function updateProgress() {
+    const pct = Math.min((currentScreen / TOTAL_QUESTIONS) * 100, 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    const visible = currentScreen > 0 && currentScreen < 10;
+    document.getElementById('backBtn').style.visibility = visible ? 'visible' : 'hidden';
+    const isResult = currentScreen === 10;
+    document.getElementById('stepLabel').textContent =
+      isResult ? '' : currentScreen === 0 ? '' : `${currentScreen} of ${TOTAL_QUESTIONS}`;
+  }
+
+  // ── OPTION SELECTION ──────────────────────────────────────────
+  function selectOpt(el, key, val) {
+    el.closest('.options, .options--grid, .options--grid-3')
+      .querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[key] = val;
+
+    // Branch: set energy question text based on activity
+    if (key === 'activity') {
+      const exerciser = ['moderate', 'active'].includes(val);
+      document.getElementById('energyQ').textContent = exerciser
+        ? 'Do you struggle to make energy for exercise?'
+        : 'Do you struggle to start the morning?';
+      document.getElementById('energySub').textContent = exerciser
+        ? 'Think about how you feel going into a training session.'
+        : 'Think about your energy in the first two hours after waking.';
+    }
+
+    const nextBtn = document.getElementById(`next-${currentScreen}`);
+    if (nextBtn) nextBtn.disabled = false;
+  }
+
+  function selectBodyOpt(el, key, val) {
+    document.querySelectorAll('.body-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[key] = val;
+    const nextBtn = document.getElementById(`next-${currentScreen}`);
+    if (nextBtn) nextBtn.disabled = false;
+  }
+
+  // ── NAVIGATION ────────────────────────────────────────────────
+  function nextScreen() {
+    let next = currentScreen + 1;
+
+    // Skip sleep question if goal is not sleep or all
+    if (next === 7 && answers.goal !== 'sleep' && answers.goal !== 'all') {
+      next = 8;
+    }
+
+    goToScreen(next);
+  }
+
+  function goBack() {
+    let prev = currentScreen - 1;
+    if (prev === 7 && answers.goal !== 'sleep' && answers.goal !== 'all') {
+      prev = 6;
+    }
+    if (prev < 0) return;
+    goToScreen(prev, true);
+  }
+
+  function goToScreen(n, back = false) {
+    const current = document.getElementById(`screen-${currentScreen}`);
+    current.classList.add('exit');
+    setTimeout(() => {
+      current.classList.remove('active', 'exit');
+      currentScreen = n;
+      const next = document.getElementById(`screen-${currentScreen}`);
+      next.classList.add('active');
+      updateProgress();
+      if (currentScreen === 10) buildResults();
+    }, 360);
+  }
+
+  // ── CONTACT FORM ──────────────────────────────────────────────
+  function checkContactForm() {
+    const name  = document.getElementById('nameInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+    const btn   = document.getElementById('next-8');
+    btn.disabled = !(name.length >= 2 && phone.length === 10 && /^\d+$/.test(phone));
+  }
+
+  // ── OTP ───────────────────────────────────────────────────────
+  function sendOTP() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    const err   = document.getElementById('phoneError');
+    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+      err.classList.add('show'); return;
+    }
+    err.classList.remove('show');
+    answers.name  = document.getElementById('nameInput').value.trim();
+    answers.phone = phone;
+
+    const sub = document.getElementById('otpSub');
+    sub.textContent = `Code sent to +91 ${phone.slice(0,5)}XXXXX`;
+    goToScreen(9);
+  }
+
+  function checkOTP(input) {
+    const val = input.value;
+    const err = document.getElementById('otpError');
+    const badge = document.getElementById('verifiedBadge');
+    const btn = document.getElementById('next-9');
+    const hint = document.getElementById('otpHint');
+
+    input.classList.remove('error', 'success');
+    err.classList.remove('show');
+    badge.classList.remove('show');
+    btn.disabled = true;
+
+    if (val.length === 4) {
+      if (val === '9999') {
+        input.classList.add('success');
+        badge.classList.add('show');
+        hint.style.display = 'none';
+        btn.disabled = false;
+      } else {
+        input.classList.add('error');
+        err.classList.add('show');
+      }
+    }
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────
+  updateProgress();
+</script>
+</body>
+</html>
