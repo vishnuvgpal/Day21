@@ -3,1549 +3,1565 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Day21 — Find Your Stack</title>
+<title>Day 21 — Build your protocol</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --navy:        #1B2A4A;
-    --navy-mid:    #243660;
-    --orange:      #E8501A;
-    --orange-soft: #FDF1EC;
-    --teal:        #0D7680;
-    --teal-soft:   #E5F5F6;
-    --black:       #0E0E0E;
-    --off-white:   #F8F6F2;
-    --grey-100:    #F2F2F0;
-    --grey-300:    #D1CFC9;
-    --grey-500:    #8A8880;
+    --cyan:        #00E5F0;
+    --cyan-deep:   #00A8B5;
+    --cyan-ink:    #006B74;
+    --cyan-wash:   #E6FCFE;
+    --cyan-pale:   #F2FDFE;
+    --yellow:      #FFD93D;
+    --purple:      #7B4FE0;
+    --ink:         #0A0A0A;
+    --ink-2:       #2A2A2A;
+    --ink-3:       #5A5A5A;
+    --ink-4:       #8A8A8A;
+    --line:        #E8E8E8;
+    --line-2:      #F0F0F0;
+    --cream:       #FFFBF0;
     --white:       #FFFFFF;
-    --serif: 'Cormorant Garamond', Georgia, serif;
-    --sans:  'DM Sans', sans-serif;
+    --red-wash:    #FEF3F2;
+    --red:         #B42318;
+    --amber-wash:  #FFF4DE;
+    --amber:       #C47A00;
+    --green:       #0A7A3D;
+
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --max: 1240px;
+    --gutter: clamp(20px, 4vw, 48px);
   }
 
-  html, body {
-    height: 100%;
-    font-family: var(--sans);
-    background: var(--off-white);
-    color: var(--black);
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-  }
-
-  /* ── LAYOUT ── */
-  .quiz-shell {
-    height: 100vh;
-    height: 100svh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── HEADER ── */
-  .quiz-header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 20px 32px;
-    border-bottom: 1px solid var(--grey-300);
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body);
+    color: var(--ink);
     background: var(--white);
-    flex-shrink: 0;
-  }
-
-  .quiz-logo {
-    font-family: var(--serif);
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--navy);
-    text-decoration: none;
-    grid-column: 2;
-    text-align: center;
-  }
-
-  .quiz-back {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--grey-500);
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-family: var(--sans);
-    padding: 6px 0;
-    transition: color 0.2s;
-    grid-column: 1;
-  }
-
-  .quiz-back:hover { color: var(--navy); }
-  .quiz-back svg { transition: transform 0.2s; }
-  .quiz-back:hover svg { transform: translateX(-3px); }
-
-  .quiz-step-label {
-    font-size: 12px;
-    color: var(--grey-500);
-    letter-spacing: 0.06em;
-    grid-column: 3;
-    text-align: right;
-  }
-
-  /* ── PROGRESS ── */
-  .quiz-progress {
-    height: 3px;
-    background: var(--grey-300);
-    flex-shrink: 0;
-  }
-  .quiz-progress-bar {
-    height: 100%;
-    background: var(--orange);
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 0%;
-  }
-
-  /* ── BODY ── */
-  .quiz-body {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
-
-  /* ── SCREEN ── */
-  .screen {
-    position: absolute;
-    inset: 0;
+    line-height: 1.55;
+    font-size: 16px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
+  }
+
+  /* ===== TOP NAV ===== */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: saturate(150%) blur(16px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .nav-inner {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 16px var(--gutter);
+    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 40px 24px;
-    opacity: 0;
-    transform: translateX(40px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    pointer-events: none;
-    overflow-y: auto;
+    justify-content: space-between;
+    gap: 20px;
   }
-
-  .screen.active {
-    opacity: 1;
-    transform: translateX(0);
-    pointer-events: all;
+  .brand-logo {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
   }
-
-  .screen.exit {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-
-  .screen-inner {
-    width: 100%;
-    max-width: 600px;
-  }
-
-  /* ── QUESTION ── */
-  .q-label {
-    font-size: 11px;
+  .brand-logo span { color: var(--cyan-deep); }
+  .back-link {
+    font-size: 13px;
     font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 16px;
-    display: block;
+    color: var(--ink-3);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--cyan-deep); }
+
+  /* ===== MAIN WRAP ===== */
+  main {
+    flex: 1;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 36px var(--gutter) 80px;
   }
 
-  .q-headline {
-    font-family: var(--serif);
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 400;
-    color: var(--navy);
-    line-height: 1.18;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-
-  .q-sub {
-    font-size: 14px;
-    color: var(--grey-500);
-    line-height: 1.65;
-    font-weight: 300;
+  /* ===== PROGRESS ===== */
+  .progress-wrap {
     margin-bottom: 40px;
   }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--line-2);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--cyan-deep);
+    border-radius: 100px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-  /* ── OPTION CARDS ── */
-  .options {
+  /* ===== QUESTION CARD ===== */
+  .question-view { display: none; }
+  .question-view.active { display: block; animation: fadeSlide 0.4s ease-out; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-ink);
+    background: var(--cyan-wash);
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .q-title {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: clamp(28px, 4.5vw, 42px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .q-title em {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--cyan-deep);
+  }
+  .q-helper {
+    font-size: 15px;
+    color: var(--ink-3);
+    margin-bottom: 32px;
+    line-height: 1.55;
+  }
+
+  /* Answer buttons */
+  .answers {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 32px;
   }
-
-  .options--grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .options--grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .opt {
+  .answer {
+    background: var(--white);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+    font-family: var(--body);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    background: var(--white);
-    border: 1.5px solid var(--grey-300);
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    text-align: left;
-    font-family: var(--sans);
-    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
   }
-
-  .opt:hover { border-color: var(--navy); }
-
-  .opt.selected {
-    border-color: var(--orange);
-    background: var(--orange-soft);
+  .answer:hover {
+    border-color: var(--cyan-deep);
+    background: var(--cyan-pale);
   }
-
-  .opt-icon {
-    width: 20px;
-    height: 20px;
+  .answer.selected {
+    border-color: var(--cyan-deep);
+    background: var(--cyan-wash);
+    color: var(--cyan-ink);
+  }
+  .answer-check {
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    border: 1.5px solid var(--grey-300);
-    flex-shrink: 0;
+    border: 2px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.15s, background 0.15s;
-  }
-
-  .opt.selected .opt-icon {
-    border-color: var(--orange);
-    background: var(--orange);
-  }
-
-  .opt-icon svg { opacity: 0; transition: opacity 0.15s; }
-  .opt.selected .opt-icon svg { opacity: 1; }
-
-  /* Tick SVG — inline replace in JS, hardcoded in HTML as checkmark */
-
-  .opt-text {
-    font-size: 15px;
-    color: var(--navy);
-    font-weight: 400;
-    line-height: 1.4;
-  }
-
-  .opt-sub {
-    font-size: 12px;
-    color: var(--grey-500);
-    margin-top: 2px;
-    font-weight: 300;
-  }
-
-  /* Card style (for grid options) */
-  .opt--card {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 20px;
-    gap: 10px;
-  }
-
-  .opt--card .opt-icon { margin-bottom: 0; }
-
-  /* ── BODY COMP OPTIONS ── */
-  .body-options {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
-
-  .body-opt {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 16px 8px;
-    background: var(--white);
-    border: 1.5px solid var(--grey-300);
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-  }
-
-  .body-opt:hover { border-color: var(--navy); }
-
-  .body-opt.selected {
-    border-color: var(--orange);
-    background: var(--orange-soft);
-  }
-
-  .body-svg { width: 60px; height: 80px; }
-
-  .body-opt-label {
-    font-size: 12px;
-    color: var(--navy);
-    font-weight: 500;
-    text-align: center;
-  }
-
-  .body-opt-pct {
-    font-size: 11px;
-    color: var(--grey-500);
-    text-align: center;
-    font-weight: 300;
-  }
-
-  /* ── INPUT FIELDS ── */
-  .input-field {
-    width: 100%;
-    padding: 16px 20px;
-    font-size: 16px;
-    font-family: var(--sans);
-    color: var(--navy);
-    background: var(--white);
-    border: 1.5px solid var(--grey-300);
-    outline: none;
-    transition: border-color 0.2s;
-    margin-bottom: 12px;
-  }
-
-  .input-field:focus { border-color: var(--navy); }
-
-  .input-field::placeholder { color: var(--grey-500); }
-
-  .phone-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .phone-prefix {
-    padding: 16px 16px;
-    background: var(--grey-100);
-    border: 1.5px solid var(--grey-300);
-    font-size: 15px;
-    color: var(--navy);
-    font-family: var(--sans);
     flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .answer.selected .answer-check {
+    background: var(--cyan-deep);
+    border-color: var(--cyan-deep);
+  }
+  .answer.selected .answer-check::after {
+    content: '✓';
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  /* multi-select variant */
+  .answer[data-multi="true"] .answer-check {
+    border-radius: 5px;
+  }
+
+  /* Nav buttons */
+  .q-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--white);
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 26px;
+    border-radius: 100px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--cyan-deep); transform: translateY(-1px); }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-primary svg { transition: transform 0.2s; }
+  .btn-primary:hover:not(:disabled) svg { transform: translateX(3px); }
+
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--ink-3);
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-back:hover { color: var(--ink); }
+
+  .next-hint {
+    font-size: 13px;
+    color: var(--ink-4);
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* ===== RESULTS / PROTOCOL REVEAL ===== */
+  .result-view { display: none; }
+  .result-view.active { display: block; animation: fadeSlide 0.5s ease-out; }
+
+  .result-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-ink);
+    background: var(--cyan-wash);
+    padding: 6px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .result-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--cyan-deep);
+    border-radius: 50%;
+  }
+  .result-title {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .result-title em {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--cyan-deep);
+  }
+  .result-lede {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 20px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin-bottom: 36px;
+    max-width: 580px;
+  }
+
+  .safety-banner {
+    background: var(--amber-wash);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .safety-banner strong { color: #6B4200; display: block; margin-bottom: 4px; font-weight: 700; }
+
+  /* Protocol pair — the hero of the reveal */
+  .protocol-pair {
+    background: linear-gradient(180deg, var(--white) 0%, var(--cyan-pale) 100%);
+    border: 2px solid var(--cyan-deep);
+    border-radius: 20px;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+  }
+  .pair-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--cyan-deep);
+    color: var(--white);
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .pair-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .pair-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .pair-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .pair-rhythm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .pair-rhythm.morning { background: var(--yellow); }
+  .pair-rhythm.evening { background: var(--purple); color: white; }
+  .pair-rhythm.anytime { background: var(--cyan); }
+  .pair-body { flex: 1; min-width: 0; }
+  .pair-name {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .pair-nj {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan-deep);
+    margin-bottom: 8px;
+  }
+  .pair-why {
+    font-size: 14px;
+    color: var(--ink-3);
+    line-height: 1.55;
+  }
+  .pair-price {
+    text-align: right;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .pair-price-main {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--ink);
+    font-feature-settings: "tnum";
+  }
+  .pair-price-sub {
+    font-size: 11px;
+    color: var(--ink-4);
+    font-weight: 500;
+  }
+
+  .pair-total {
+    padding: 18px 20px;
+    background: var(--white);
+    border-radius: 12px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
   }
-
-  .otp-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .otp-input {
-    flex: 1;
-    padding: 16px 20px;
-    font-size: 22px;
-    letter-spacing: 0.3em;
-    font-family: var(--sans);
-    color: var(--navy);
-    background: var(--white);
-    border: 1.5px solid var(--grey-300);
-    outline: none;
-    text-align: center;
-    transition: border-color 0.2s;
-  }
-
-  .otp-input:focus { border-color: var(--navy); }
-
-  .otp-input.error { border-color: #C0392B; }
-  .otp-input.success { border-color: var(--teal); }
-
-  .otp-hint {
+  .pair-total-label {
     font-size: 12px;
-    color: var(--grey-500);
-    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .pair-total-amount {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 26px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+  }
+  .pair-perday {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .pair-perday strong { color: var(--ink-2); font-weight: 700; }
+
+  .pair-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  @media (min-width: 520px) {
+    .pair-cta { flex-direction: row; }
+  }
+  .btn-primary--full {
+    flex: 1;
+    justify-content: center;
+    padding: 16px 26px;
+    font-size: 15px;
+  }
+  .btn-secondary {
+    flex: 1;
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--line);
+    border-radius: 100px;
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 26px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    text-align: center;
+  }
+  .btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  .btn-customize-hint {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-4);
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* Consider later */
+  .later-card {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .later-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 4px;
+  }
+  .later-text { flex: 1; }
+  .later-name {
+    font-family: var(--body);
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .later-why {
+    font-size: 13px;
+    color: var(--ink-3);
     line-height: 1.5;
   }
 
-  .send-otp-btn {
-    padding: 16px 24px;
-    background: var(--navy);
-    color: var(--white);
-    border: none;
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: opacity 0.2s;
+  /* Evidence link */
+  .evidence-inline {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
   }
-
-  .send-otp-btn:hover { opacity: 0.85; }
-  .send-otp-btn:disabled { opacity: 0.4; cursor: default; }
-
-  .error-msg {
-    font-size: 12px;
-    color: #C0392B;
-    margin-top: -4px;
-    margin-bottom: 12px;
-    display: none;
-  }
-  .error-msg.show { display: block; }
-
-  /* ── CTA BUTTON ── */
-  .btn-next {
+  .evidence-inline a {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    background: var(--orange);
-    color: var(--white);
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    padding: 16px 36px;
-    border: none;
-    cursor: pointer;
-    margin-top: 32px;
-    transition: opacity 0.2s, transform 0.2s;
-    width: 100%;
-    justify-content: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
   }
+  .evidence-inline a:hover { color: var(--cyan-deep); border-color: var(--cyan-deep); }
 
-  .btn-next:hover { opacity: 0.88; transform: translateY(-1px); }
-  .btn-next:disabled { opacity: 0.35; cursor: default; transform: none; }
+  /* ===== CUSTOMIZE VIEW ===== */
+  .customize-view { display: none; }
+  .customize-view.active { display: block; animation: fadeSlide 0.4s ease-out; }
 
-  .btn-next svg { transition: transform 0.2s; }
-  .btn-next:hover:not(:disabled) svg { transform: translateX(4px); }
-
-  /* ── RESULTS ── */
-  .result-screen {
-    background: var(--navy);
-    padding: 0;
-    overflow-y: auto;
-    justify-content: flex-start;
-    align-items: flex-start;
+  .cust-header {
+    margin-bottom: 28px;
   }
-
-  .result-inner {
-    max-width: 680px;
-    width: 100%;
-    padding: 56px 32px 80px;
+  .cust-title {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: clamp(28px, 4.5vw, 36px);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 8px;
   }
-
-  .result-greeting {
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    margin-bottom: 14px;
-  }
-
-  .result-headline {
-    font-family: var(--serif);
-    font-size: clamp(32px, 5vw, 52px);
-    font-weight: 300;
-    color: var(--white);
-    line-height: 1.12;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-
-  .result-headline em {
+  .cust-title em {
+    font-family: var(--display);
     font-style: italic;
-    color: var(--orange);
+    font-weight: 400;
+    color: var(--cyan-deep);
+  }
+  .cust-sub {
+    font-size: 15px;
+    color: var(--ink-3);
+    line-height: 1.5;
   }
 
-  .result-sub {
-    font-size: 14px;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 48px;
-    line-height: 1.75;
-    font-weight: 300;
-    max-width: 520px;
-  }
-
-  /* ── STACK CARD ── */
-  .stack-section-label {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .stack-block {
-    background: rgba(255,255,255,0.04);
-    border-left: 3px solid var(--teal);
-    margin-bottom: 24px;
-    padding: 28px 28px 0;
-  }
-
-  .stack-block--secondary { border-left-color: rgba(13,118,128,0.35); }
-
-  .stack-block-header {
+  .cart-list {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    margin-bottom: 0;
-  }
-
-  .stack-block-title {
-    font-family: var(--serif);
-    font-size: 34px;
-    font-weight: 400;
-    color: var(--white);
-    line-height: 1.1;
-    margin-bottom: 4px;
-  }
-
-  .stack-block-sub {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
-    margin-bottom: 6px;
-  }
-
-  .stack-block-timing {
-    font-size: 12px;
-    color: var(--teal);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-  }
-
-  .stack-dose-box {
-    text-align: right;
-    flex-shrink: 0;
-    background: rgba(13,118,128,0.12);
-    padding: 14px 20px;
-    border: 1px solid rgba(13,118,128,0.2);
-  }
-
-  .dose-label {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
-    margin-bottom: 4px;
-  }
-
-  .dose-value {
-    font-family: var(--serif);
-    font-size: 26px;
-    color: var(--teal);
-    font-weight: 400;
-  }
-
-  .dose-why {
-    font-size: 11px;
-    color: rgba(255,255,255,0.35);
-    margin-top: 4px;
-    font-style: italic;
-  }
-
-  /* ── INGREDIENTS ── */
-  .ingredients-section {
-    padding: 20px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-  }
-
-  .ingredients-label {
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.25);
-    margin-bottom: 16px;
-  }
-
-  .ingredient-row {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 16px;
-    padding: 14px 0;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    align-items: start;
-  }
-
-  .ingredient-row:first-of-type { border-top: none; }
-
-  .ingredient-name-col {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--white);
-    line-height: 1.4;
-  }
-
-  .ingredient-amount {
-    font-size: 11px;
-    color: var(--teal);
-    font-weight: 400;
-    margin-top: 2px;
-  }
-
-  .ingredient-desc {
-    font-size: 13px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.65;
-    font-weight: 300;
-  }
-
-  .ingredient-ref {
-    display: inline-block;
-    font-size: 10px;
-    color: var(--teal);
-    text-decoration: none;
-    margin-top: 5px;
-    border-bottom: 1px solid rgba(13,118,128,0.3);
-    letter-spacing: 0.04em;
-  }
-
-  .ingredient-ref:hover { border-bottom-color: var(--teal); }
-
-  /* ── HOW IT WORKS ── */
-  .how-section {
-    padding: 20px 0 24px;
-  }
-
-  .how-label {
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.25);
-    margin-bottom: 14px;
-  }
-
-  .how-text {
-    font-size: 13px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.75;
-    font-weight: 300;
-  }
-
-  .how-text strong { color: rgba(255,255,255,0.7); font-weight: 500; }
-
-  /* ── WHATSAPP ONBOARDING ── */
-  .wa-section {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    padding: 24px 24px;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 32px;
   }
-
-  .wa-header {
+  .cart-row {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 14px;
+    transition: border-color 0.2s;
   }
-
-  .wa-icon {
-    width: 32px;
-    height: 32px;
-    background: rgba(37,211,102,0.1);
-    border-radius: 50%;
+  .cart-row.active {
+    border-color: var(--cyan-deep);
+    background: var(--cyan-pale);
+  }
+  .cart-row.inactive {
+    opacity: 0.55;
+  }
+  .cart-check {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+    background: white;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.15s;
+  }
+  .cart-row.active .cart-check {
+    background: var(--cyan-deep);
+    border-color: var(--cyan-deep);
+  }
+  .cart-row.active .cart-check::after {
+    content: '✓';
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .cart-body { flex: 1; min-width: 0; }
+  .cart-name {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .cart-nj {
+    font-size: 12px;
+    color: var(--cyan-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .cart-meta {
+    font-size: 12px;
+    color: var(--ink-4);
+    font-weight: 500;
+  }
+  .cart-price {
+    text-align: right;
     flex-shrink: 0;
   }
-
-  .wa-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--white);
-    letter-spacing: 0.02em;
+  .cart-price-main {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink);
+    font-feature-settings: "tnum";
   }
-
-  .wa-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .wa-step {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .wa-step-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #25D366;
-    margin-top: 6px;
-    flex-shrink: 0;
-    opacity: 0.6;
-  }
-
-  .wa-step-text {
-    font-size: 13px;
-    color: rgba(255,255,255,0.4);
-    line-height: 1.6;
-    font-weight: 300;
-  }
-
-  /* ── ACTIONS ── */
-  .result-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 8px;
-  }
-
-  .btn-primary-result {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: var(--orange);
-    color: var(--white);
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    padding: 18px 36px;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-
-  .btn-primary-result:hover { opacity: 0.88; }
-
-  .btn-expert {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: transparent;
-    color: rgba(255,255,255,0.45);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    padding: 15px 36px;
-    border: 1px solid rgba(255,255,255,0.12);
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    width: 100%;
-  }
-
-  .btn-expert:hover {
-    border-color: rgba(255,255,255,0.35);
-    color: var(--white);
-  }
-
-  .result-footnote {
-    margin-top: 28px;
+  .cart-price-sub {
     font-size: 11px;
-    color: rgba(255,255,255,0.18);
-    line-height: 1.7;
-  }
-
-  /* ── OTP VERIFIED ── */
-  .verified-badge {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--teal);
-    margin-bottom: 16px;
+    color: var(--ink-4);
     font-weight: 500;
   }
-  .verified-badge.show { display: flex; }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    .quiz-header { padding: 16px 20px; }
-    .screen { padding: 28px 20px; }
-    .body-options { grid-template-columns: repeat(2, 1fr); }
-    .options--grid { grid-template-columns: 1fr; }
-    .options--grid-3 { grid-template-columns: 1fr 1fr; }
-    .result-inner { padding: 36px 20px 60px; }
-    .stack-block { padding: 20px 18px 0; }
-    .stack-block-header { flex-direction: column; gap: 16px; }
-    .stack-dose-box { text-align: left; }
-    .ingredient-row { grid-template-columns: 1fr; gap: 8px; }
-    .ingredient-name-col { font-size: 13px; }
-    .wa-section { padding: 20px 18px; }
+  .cart-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin: 20px 0 8px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
   }
 
-  @media (max-width: 400px) {
-    .body-options { grid-template-columns: repeat(2, 1fr); }
-    .options--grid-3 { grid-template-columns: 1fr; }
-    .q-headline { font-size: 26px; }
-    .stack-block-title { font-size: 28px; }
+  .cart-total-wrap {
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 24px 24px;
+    margin-bottom: 16px;
+  }
+  .cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .cart-total-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+  }
+  .cart-total-amount {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 32px;
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+  }
+  .cart-perday {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    text-align: right;
+    margin-top: 6px;
+  }
+  .cart-empty-msg {
+    font-size: 13px;
+    color: var(--amber-wash);
+    text-align: center;
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+  }
+
+  /* ===== UNDER 18 DEAD-END ===== */
+  .deadend-view { display: none; text-align: center; padding: 60px 0; }
+  .deadend-view.active { display: block; animation: fadeSlide 0.4s ease-out; }
+  .deadend-view h2 {
+    font-family: var(--body);
+    font-weight: 900;
+    font-size: 32px;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .deadend-view p {
+    font-size: 16px;
+    color: var(--ink-3);
+    max-width: 440px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.6);
+    padding: 24px var(--gutter);
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  footer span { color: var(--cyan); font-weight: 700; }
+
+  /* small screens */
+  @media (max-width: 520px) {
+    .pair-item { flex-wrap: wrap; }
+    .pair-price { width: 100%; text-align: left; padding-left: 56px; margin-top: -6px; }
+    .pair-body { min-width: calc(100% - 56px); }
   }
 </style>
 </head>
 <body>
 
-<div class="quiz-shell">
+<!-- NAV -->
+<header class="topbar">
+  <div class="nav-inner">
+    <a href="index.html" class="brand-logo">day<span>21</span></a>
+    <a href="index.html" class="back-link">← Back to site</a>
+  </div>
+</header>
 
-  <!-- HEADER -->
-  <header class="quiz-header">
-    <button class="quiz-back" id="backBtn" onclick="goBack()" style="visibility:hidden">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Back
-    </button>
-    <a href="day21.html" class="quiz-logo" onclick="window.location.href='day21.html'; return false;">Day21</a>
-    <span class="quiz-step-label" id="stepLabel"></span>
-  </header>
+<main>
 
   <!-- PROGRESS -->
-  <div class="quiz-progress">
-    <div class="quiz-progress-bar" id="progressBar"></div>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-meta">
+      <span id="progressStep">Step 1 of 7</span>
+      <span id="progressPct">14%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width: 14%"></div></div>
   </div>
 
-  <!-- QUIZ BODY -->
-  <div class="quiz-body" id="quizBody">
+  <!-- ========== QUESTIONS ========== -->
 
-    <!-- Q1: GOAL -->
-    <div class="screen active" id="screen-0">
-      <div class="screen-inner">
-        <span class="q-label">Let's start</span>
-        <h2 class="q-headline">What's your primary goal?</h2>
-        <p class="q-sub">We'll build your stack around this. You can always refine later.</p>
-        <div class="options">
-          <button class="opt" onclick="selectOpt(this, 'goal', 'sleep')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Sleep better</div>
-              <div class="opt-sub">Fall asleep faster, stay asleep, wake rested</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'goal', 'energy')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">More energy</div>
-              <div class="opt-sub">Cleaner energy, better focus, no crashes</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'goal', 'weight')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Weight management</div>
-              <div class="opt-sub">Appetite control, metabolism support</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'goal', 'all')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">All of the above</div>
-              <div class="opt-sub">I want to work on everything</div>
-            </div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-0" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <!-- Q1: Primary concern -->
+  <div class="question-view active" data-q="1">
+    <div class="q-eyebrow">01 · Your main focus</div>
+    <h1 class="q-title">What matters most to you <em>right now?</em></h1>
+    <p class="q-helper">Pick the one thing you'd most like to feel different about. We'll ask about anything else next.</p>
+    <div class="answers" data-single="primary">
+      <button class="answer" data-value="sleep"><span>Better sleep</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="energy"><span>More energy during the day</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="skin"><span>Stronger, healthier skin</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="recovery"><span>Recovery from workouts</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="cardio"><span>Long-term heart health</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="foundation"><span>I'm just starting — help me pick</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <span></span>
+      <button class="btn-primary" data-next disabled>
+        Next — you can add more next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q2: Secondary concerns -->
+  <div class="question-view" data-q="2">
+    <div class="q-eyebrow">02 · Anything else</div>
+    <h1 class="q-title">Anything else you'd like to <em>address?</em></h1>
+    <p class="q-helper">Optional. Pick up to two — or skip ahead if one is enough.</p>
+    <div class="answers" data-multi="secondary" data-max="2" id="secondaryAnswers">
+      <!-- populated by JS, excluding primary -->
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q3: Sleep quality (conditional) -->
+  <div class="question-view" data-q="3">
+    <div class="q-eyebrow">Sleep check</div>
+    <h1 class="q-title">How's your sleep, <em>honestly?</em></h1>
+    <p class="q-helper">This shapes which blend fits you better.</p>
+    <div class="answers" data-single="sleep_pattern">
+      <button class="answer" data-value="falling"><span>It takes me a while to fall asleep</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="waking"><span>I fall asleep okay but wake up tired</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="fragmented"><span>I wake up multiple times a night</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="fine"><span>It's fine, could be better</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q4: Workout frequency (conditional: recovery/energy) -->
+  <div class="question-view" data-q="4">
+    <div class="q-eyebrow">Movement check</div>
+    <h1 class="q-title">How often do you <em>work out?</em></h1>
+    <p class="q-helper">Helps us figure out if recovery support makes sense.</p>
+    <div class="answers" data-single="workout">
+      <button class="answer" data-value="rarely"><span>Rarely</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="light"><span>1–2 times a week</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="regular"><span>3+ times a week</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q5: Coffee/tea (conditional: energy) -->
+  <div class="question-view" data-q="5">
+    <div class="q-eyebrow">Caffeine check</div>
+    <h1 class="q-title">Coffee or tea, <em>daily?</em></h1>
+    <p class="q-helper">If you're already well-caffeinated, Bright Brew isn't the answer — we'll route elsewhere.</p>
+    <div class="answers" data-single="caffeine">
+      <button class="answer" data-value="none"><span>Not really</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="moderate"><span>1 cup a day</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="heavy"><span>2 or more cups a day</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q6: Age -->
+  <div class="question-view" data-q="6">
+    <div class="q-eyebrow">06 · You</div>
+    <h1 class="q-title">Your age group?</h1>
+    <p class="q-helper">Some nutrients matter more at different ages.</p>
+    <div class="answers" data-single="age">
+      <button class="answer" data-value="under18"><span>Under 18</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="18-27"><span>18–27</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="28-37"><span>28–37</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="38-50"><span>38–50</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="50plus"><span>50+</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q7: Safety filter -->
+  <div class="question-view" data-q="7">
+    <div class="q-eyebrow">07 · Safety check</div>
+    <h1 class="q-title">Any of these apply <em>to you?</em></h1>
+    <p class="q-helper">We use this to flag anything that needs doctor input — nothing more.</p>
+    <div class="answers" data-multi="safety">
+      <button class="answer" data-value="pregnant"><span>Pregnant or breastfeeding</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="bloodthinner"><span>On blood thinners</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="antidep"><span>On antidepressants or sleep meds</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="kidneyliver"><span>Significant kidney or liver condition</span><span class="answer-check"></span></button>
+      <button class="answer" data-value="none"><span>None of the above</span><span class="answer-check"></span></button>
+    </div>
+    <div class="q-nav">
+      <button class="btn-back" data-back>← Back</button>
+      <button class="btn-primary" data-next disabled>
+        See my protocol
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== UNDER 18 DEAD-END ========== -->
+  <div class="deadend-view" id="deadend">
+    <h2>Day 21 is designed for adults 18 and over.</h2>
+    <p>Most of our ingredients haven't been studied enough in people under 18, and some aren't recommended at all for minors. If a parent or guardian would like to explore Day 21 for their own routine, they're welcome to retake the quiz.</p>
+    <a href="index.html" class="btn-primary">
+      Back to site
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+
+  <!-- ========== PROTOCOL REVEAL ========== -->
+  <div class="result-view" id="result">
+    <div class="result-eyebrow">Your protocol</div>
+    <h1 class="result-title">Built around <em>how you actually live.</em></h1>
+    <p class="result-lede" id="resultLede">A two-part pairing, sized to your day.</p>
+
+    <div id="safetyBanner"></div>
+
+    <div class="protocol-pair">
+      <span class="pair-label">The pairing</span>
+      <ul class="pair-list" id="pairList"></ul>
+      <div class="pair-total">
+        <span class="pair-total-label">Total · 30 days</span>
+        <span class="pair-total-amount" id="pairTotal">—</span>
+      </div>
+      <div class="pair-perday" id="pairPerday">—</div>
+      <div class="pair-cta">
+        <button class="btn-primary btn-primary--full" id="customizeBtn">
+          Continue — add or remove items
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
+      <div class="btn-customize-hint">You can add, remove, or swap in the next step.</div>
     </div>
 
-    <!-- Q2: GENDER -->
-    <div class="screen" id="screen-1">
-      <div class="screen-inner">
-        <span class="q-label">About you</span>
-        <h2 class="q-headline">What's your gender?</h2>
-        <p class="q-sub">This helps us calibrate dosage recommendations accurately.</p>
-        <div class="options--grid options">
-          <button class="opt opt--card" onclick="selectOpt(this, 'gender', 'male')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Male</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'gender', 'female')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Female</div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-1" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+    <div class="later-card" id="laterCard" style="display: none;">
+      <div class="later-text">
+        <div class="later-label">Consider later</div>
+        <div class="later-name" id="laterName">—</div>
+        <div class="later-why" id="laterWhy">—</div>
       </div>
     </div>
 
-    <!-- Q3: AGE -->
-    <div class="screen" id="screen-2">
-      <div class="screen-inner">
-        <span class="q-label">About you</span>
-        <h2 class="q-headline">How old are you?</h2>
-        <p class="q-sub">Nutritional needs change across different life stages.</p>
-        <div class="options--grid options">
-          <button class="opt opt--card" onclick="selectOpt(this, 'age', '18-24')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">18 – 24</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'age', '25-34')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">25 – 34</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'age', '35-44')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">35 – 44</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'age', '45+')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">45+</div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-2" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+    <div class="evidence-inline">
+      <a href="day21-formulation-v2.html">
+        See the full formulation & evidence →
+      </a>
+    </div>
+  </div>
+
+  <!-- ========== CUSTOMIZE CART ========== -->
+  <div class="customize-view" id="customize">
+    <div class="cust-header">
+      <h1 class="cust-title">Your protocol, <em>your way.</em></h1>
+      <p class="cust-sub">Add the "consider later," remove anything, or change the balance. You're in control.</p>
+    </div>
+
+    <div class="cart-list" id="cartList"></div>
+
+    <div class="cart-total-wrap">
+      <div class="cart-total-row">
+        <span class="cart-total-label">Total · 30 days</span>
+        <span class="cart-total-amount" id="cartTotal">—</span>
+      </div>
+      <div class="cart-perday" id="cartPerday">—</div>
+      <div class="cart-empty-msg" id="cartEmptyMsg" style="display: none;">
+        Your cart is empty — add at least one product to continue.
       </div>
     </div>
 
-    <!-- Q4: BODY WEIGHT -->
-    <div class="screen" id="screen-3">
-      <div class="screen-inner">
-        <span class="q-label">About you</span>
-        <h2 class="q-headline">What's your body weight?</h2>
-        <p class="q-sub">Used to calculate your personalised dosage.</p>
-        <div class="options--grid options">
-          <button class="opt opt--card" onclick="selectOpt(this, 'weight', 'under60')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Under 60 kg</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'weight', '60-80')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">60 – 80 kg</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'weight', '80-100')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">80 – 100 kg</div>
-          </button>
-          <button class="opt opt--card" onclick="selectOpt(this, 'weight', 'over100')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">100 kg+</div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-3" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
+    <div class="pair-cta" style="margin-top: 16px;">
+      <button class="btn-secondary" id="backToResult">← Back to my protocol</button>
+      <button class="btn-primary btn-primary--full" id="checkoutBtn">
+        Continue to checkout
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
     </div>
+    <div class="btn-customize-hint">Checkout coming soon — this is a preview.</div>
+  </div>
 
-    <!-- Q5: BODY COMPOSITION -->
-    <div class="screen" id="screen-4">
-      <div class="screen-inner">
-        <span class="q-label">About you</span>
-        <h2 class="q-headline">Which best describes your body?</h2>
-        <p class="q-sub">Pick the closest match — no need to be precise.</p>
-        <div class="body-options">
+</main>
 
-          <!-- Lean -->
-          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'lean')">
-            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
-              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#D1CFC9"/>
-              <rect x="22" y="22" width="16" height="28" rx="4" fill="#D1CFC9"/>
-              <rect x="14" y="23" width="7" height="22" rx="3" fill="#D1CFC9"/>
-              <rect x="39" y="23" width="7" height="22" rx="3" fill="#D1CFC9"/>
-              <rect x="22" y="50" width="6" height="24" rx="3" fill="#D1CFC9"/>
-              <rect x="32" y="50" width="6" height="24" rx="3" fill="#D1CFC9"/>
-            </svg>
-            <div class="body-opt-label">Lean</div>
-            <div class="body-opt-pct">~10–15%</div>
-          </button>
-
-          <!-- Athletic -->
-          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'athletic')">
-            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
-              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#B5B3AD"/>
-              <rect x="20" y="22" width="20" height="30" rx="4" fill="#B5B3AD"/>
-              <rect x="12" y="23" width="8" height="24" rx="3" fill="#B5B3AD"/>
-              <rect x="40" y="23" width="8" height="24" rx="3" fill="#B5B3AD"/>
-              <rect x="21" y="52" width="7" height="23" rx="3" fill="#B5B3AD"/>
-              <rect x="32" y="52" width="7" height="23" rx="3" fill="#B5B3AD"/>
-            </svg>
-            <div class="body-opt-label">Athletic</div>
-            <div class="body-opt-pct">~15–22%</div>
-          </button>
-
-          <!-- Average -->
-          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'average')">
-            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
-              <ellipse cx="30" cy="12" rx="9" ry="9" fill="#8A8880"/>
-              <ellipse cx="30" cy="38" rx="13" ry="16" fill="#8A8880"/>
-              <rect x="12" y="23" width="7" height="22" rx="3" fill="#8A8880"/>
-              <rect x="41" y="23" width="7" height="22" rx="3" fill="#8A8880"/>
-              <rect x="20" y="52" width="7" height="23" rx="3" fill="#8A8880"/>
-              <rect x="33" y="52" width="7" height="23" rx="3" fill="#8A8880"/>
-            </svg>
-            <div class="body-opt-label">Average</div>
-            <div class="body-opt-pct">~22–30%</div>
-          </button>
-
-          <!-- Heavy -->
-          <button class="body-opt" onclick="selectBodyOpt(this, 'body', 'heavy')">
-            <svg class="body-svg" viewBox="0 0 60 80" fill="none">
-              <ellipse cx="30" cy="12" rx="10" ry="10" fill="#6B6965"/>
-              <ellipse cx="30" cy="40" rx="17" ry="19" fill="#6B6965"/>
-              <rect x="10" y="25" width="8" height="20" rx="3" fill="#6B6965"/>
-              <rect x="42" y="25" width="8" height="20" rx="3" fill="#6B6965"/>
-              <rect x="18" y="56" width="8" height="20" rx="3" fill="#6B6965"/>
-              <rect x="34" y="56" width="8" height="20" rx="3" fill="#6B6965"/>
-            </svg>
-            <div class="body-opt-label">Higher body fat</div>
-            <div class="body-opt-pct">30%+</div>
-          </button>
-
-        </div>
-        <button class="btn-next" id="next-4" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q6: ACTIVITY LEVEL -->
-    <div class="screen" id="screen-5">
-      <div class="screen-inner">
-        <span class="q-label">Your lifestyle</span>
-        <h2 class="q-headline">How active are you?</h2>
-        <p class="q-sub">Be honest — there's no wrong answer here.</p>
-        <div class="options">
-          <button class="opt" onclick="selectOpt(this, 'activity', 'sedentary')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Mostly sedentary</div>
-              <div class="opt-sub">Desk job, light movement through the day</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'activity', 'light')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Lightly active</div>
-              <div class="opt-sub">Walking, occasional exercise</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'activity', 'moderate')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Moderately active</div>
-              <div class="opt-sub">Exercise 2–4 times a week</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'activity', 'active')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Very active</div>
-              <div class="opt-sub">Training 5+ times a week</div>
-            </div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-5" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q7: ENERGY QUESTION (branched) -->
-    <div class="screen" id="screen-6">
-      <div class="screen-inner">
-        <span class="q-label">Your energy</span>
-        <h2 class="q-headline" id="energyQ">Do you struggle to start the morning?</h2>
-        <p class="q-sub" id="energySub">Think about your energy in the first two hours after waking.</p>
-        <div class="options">
-          <button class="opt" onclick="selectOpt(this, 'energy', 'always')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Yes, almost every day</div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'energy', 'sometimes')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Sometimes — depends on the day</div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'energy', 'rarely')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="opt-text">Rarely — I generally feel okay</div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-6" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q8: SLEEP QUESTION (shown if goal = sleep or all) -->
-    <div class="screen" id="screen-7">
-      <div class="screen-inner">
-        <span class="q-label">Your sleep</span>
-        <h2 class="q-headline">How's your sleep right now?</h2>
-        <p class="q-sub">This helps us understand the severity and the right starting dose.</p>
-        <div class="options">
-          <button class="opt" onclick="selectOpt(this, 'sleep', 'bad')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Poor — I rarely sleep well</div>
-              <div class="opt-sub">Takes long to fall asleep, wake up often, feel tired</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'sleep', 'inconsistent')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Inconsistent — good nights and bad nights</div>
-              <div class="opt-sub">No reliable pattern</div>
-            </div>
-          </button>
-          <button class="opt" onclick="selectOpt(this, 'sleep', 'ok')">
-            <div class="opt-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div>
-              <div class="opt-text">Okay — but I want to wake up more rested</div>
-              <div class="opt-sub">Sleep fine but never feel truly recovered</div>
-            </div>
-          </button>
-        </div>
-        <button class="btn-next" id="next-7" onclick="nextScreen()" disabled>
-          Continue <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q9: NAME + PHONE -->
-    <div class="screen" id="screen-8">
-      <div class="screen-inner">
-        <span class="q-label">Almost there</span>
-        <h2 class="q-headline">Where should we send your stack?</h2>
-        <p class="q-sub">We'll send your personalised recommendation and a verification code to your phone.</p>
-
-        <input type="text" class="input-field" id="nameInput" placeholder="Your first name" oninput="checkContactForm()">
-
-        <div class="phone-row">
-          <div class="phone-prefix">🇮🇳 +91</div>
-          <input type="tel" class="input-field" id="phoneInput" placeholder="Phone number" maxlength="10" oninput="checkContactForm()" style="margin-bottom:0; flex:1;">
-        </div>
-        <div class="error-msg" id="phoneError">Please enter a valid 10-digit number.</div>
-
-        <button class="btn-next" id="next-8" onclick="sendOTP()" disabled>
-          Send verification code <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Q10: OTP -->
-    <div class="screen" id="screen-9">
-      <div class="screen-inner">
-        <span class="q-label">Verification</span>
-        <h2 class="q-headline">Enter your code</h2>
-        <p class="q-sub" id="otpSub">We sent a 4-digit code to your number.</p>
-
-        <div class="verified-badge" id="verifiedBadge">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#0D7680" stroke-width="1.5"/><path d="M5 8l2.5 2.5L11 5.5" stroke="#0D7680" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Verified
-        </div>
-
-        <input type="number" class="otp-input" id="otpInput" placeholder="9999" maxlength="4" oninput="checkOTP(this)">
-        <p class="otp-hint" id="otpHint">Enter the 4-digit code. For this demo, use <strong>9999</strong>.</p>
-        <div class="error-msg" id="otpError">Incorrect code. Please try again.</div>
-
-        <button class="btn-next" id="next-9" onclick="nextScreen()" disabled>
-          See my stack <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- RESULTS -->
-    <div class="screen result-screen" id="screen-10">
-      <div class="result-inner">
-        <div class="result-greeting" id="resultGreeting">Your personalised stack</div>
-        <h2 class="result-headline" id="resultHeadline">We've built your<br>stack. Here's <em>exactly why.</em></h2>
-        <p class="result-sub" id="resultSub">Every ingredient, every dose, calibrated to your profile. Not a generic pack — yours.</p>
-
-        <div id="stackBlocks"></div>
-
-        <!-- WHATSAPP ONBOARDING -->
-        <div class="wa-section">
-          <div class="wa-header">
-            <div class="wa-icon">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M13.6 2.4A7.8 7.8 0 002 11.2L.8 15.2l4.1-1.1A7.8 7.8 0 1013.6 2.4z" fill="#25D366"/>
-                <path d="M11.5 9.8c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.5.1-.1.2-.5.7-.7.8-.1.1-.2.1-.4 0-.2-.1-.9-.3-1.7-1-.6-.6-1-1.2-1.1-1.4-.1-.2 0-.3.1-.4l.3-.4.2-.4v-.4l-.7-1.5c-.2-.4-.4-.3-.5-.3h-.4c-.1 0-.4.1-.6.3C4.1 5.2 3.7 5.7 3.7 6.7c0 1 .7 2 .8 2.1.1.1 1.4 2.2 3.5 3 .5.2.9.3 1.2.4.5.1 1 .1 1.3.1.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1-.1 0-.2-.1-.4-.2z" fill="white"/>
-              </svg>
-            </div>
-            <div class="wa-title">What happens after you order</div>
-          </div>
-          <div class="wa-steps">
-            <div class="wa-step">
-              <div class="wa-step-dot"></div>
-              <div class="wa-step-text">Your stack ships within 24 hours. A confirmation and dosage guide arrives on this number before it does.</div>
-            </div>
-            <div class="wa-step">
-              <div class="wa-step-dot"></div>
-              <div class="wa-step-text">Day 1 — we check in. You tell us you've started. We tell you what to expect in the first week and what not to.</div>
-            </div>
-            <div class="wa-step">
-              <div class="wa-step-dot"></div>
-              <div class="wa-step-text">Every few days — a brief check-in. One question. One answer. We track your progress so you don't have to.</div>
-            </div>
-            <div class="wa-step">
-              <div class="wa-step-dot"></div>
-              <div class="wa-step-text">Day 21 — we show you your progress chart. What changed, what didn't, and what comes next.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="result-actions">
-          <a href="#" class="btn-primary-result">
-            Order my stack
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <button class="btn-expert" onclick="window.location.href='mailto:hello@day21.in'">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 6v4M7 4.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Talk to a Day21 expert instead
-          </button>
-        </div>
-
-        <p class="result-footnote">
-          Your stack is built from your quiz responses. A Day21 advisor reviews every order before it ships and will refine your protocol on your first check-in if needed.
-        </p>
-      </div>
-    </div>
-
-  </div><!-- /quiz-body -->
-</div><!-- /quiz-shell -->
+<footer>
+  <a href="index.html" style="color: inherit; text-decoration: none; font-weight: 700;">day<span>21</span></a> · Built to work together · © 2026 Mumbai, India.
+</footer>
 
 <script>
-  // ── STATE ──────────────────────────────────────────────────────
-  const answers = {};
-  let currentScreen = 0;
-
-  // Screens that are conditionally skipped
-  // screen-7 (sleep question) only shown if goal = sleep or all
-  const TOTAL_QUESTIONS = 9; // excluding results
-
-  // ── PRODUCT DATA ──────────────────────────────────────────────
-  const productData = {
+  // ========================================
+  // PRODUCT CATALOG
+  // ========================================
+  const PRODUCTS = {
     sleep: {
-      name: 'Lights Off',
-      blend: 'Sleep Blend',
-      time: 'Take 30 min before sleep',
-      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
-      doseWhy: {
-        under60:  'At your body weight, 200mg elemental magnesium reaches optimal serum levels for sleep onset support without over-sedation.',
-        '60-80':  '300mg elemental magnesium is the studied efficacious dose for improving sleep quality in adults in your weight range.',
-        '80-100': 'At 80–100kg, tissue distribution requires a higher dose. 400mg ensures adequate magnesium reaches muscle and neurological tissue to support deep sleep architecture.',
-        over100:  'At 100kg+, 400mg across two tablets provides full tissue saturation. The split dose improves absorption compared to a single higher-strength tablet.'
-      },
-      howItWorks: 'Magnesium glycinate crosses the blood-brain barrier more efficiently than other magnesium forms. It binds to GABA receptors — the same receptors targeted by most sleep medications — but without dependency or next-day sedation. The L-Theanine increases alpha brain wave activity, promoting a calm, alert state that transitions naturally into sleep. Melatonin is included at a subclinical dose (0.5mg) to support circadian rhythm signalling without overriding your body\'s natural production. <strong>Most users notice changes in sleep onset time by Day 7–10.</strong> Measurable deep sleep improvements typically register by Day 14.',
-      ingredients: [
-        {
-          name: 'Magnesium Glycinate',
-          amount: '200–400mg elemental',
-          desc: 'The most bioavailable form of magnesium, bound to the amino acid glycine. Glycine itself has independent sleep-supporting properties — it lowers core body temperature, a key signal for sleep onset. Magnesium deficiency (present in ~60% of Indian adults) directly impairs GABA neurotransmission.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/23853635',
-          refLabel: 'PubMed: Magnesium & sleep quality (NHANES, 2012)'
-        },
-        {
-          name: 'L-Theanine',
-          amount: '200mg',
-          desc: 'A non-protein amino acid found in green tea. Increases alpha brain waves (8–12 Hz), associated with relaxed alertness. Reduces physiological and psychological stress responses without causing drowsiness. Works synergistically with magnesium to reduce sleep onset latency.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/19441940',
-          refLabel: 'PubMed: L-Theanine & alpha wave activity (2008)'
-        },
-        {
-          name: 'Melatonin',
-          amount: '0.5mg (subclinical)',
-          desc: 'Intentionally dosed below the 1–5mg range common in most sleep supplements. At 0.5mg, melatonin supports circadian phase-shifting without suppressing endogenous production. Higher doses cause rebound insomnia and next-day grogginess — the exact experience most people have had with off-the-shelf melatonin.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/10611609',
-          refLabel: 'PubMed: Low-dose melatonin efficacy (Lewy et al., 1998)'
-        }
-      ]
+      key: 'sleep',
+      name: 'Rest Assured',
+      nj: 'Not Just Melatonin',
+      price: 1499,
+      format: 'Capsule · 60 caps',
+      rhythm: 'evening',
+      rhythmIcon: '🌙',
+      unit: '30-day supply',
+      concerns: ['sleep']
     },
-    energy: {
-      name: 'Switch On',
-      blend: 'Metabolism & Energy Blend',
-      time: 'Take in the morning, with or before first meal',
-      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
-      doseWhy: {
-        under60:  'At your weight, 100mg caffeine with matched L-Theanine provides clean focus without the adrenal stress response of higher doses.',
-        '60-80':  '150mg caffeine with 150mg L-Theanine maintains a 1:1 ratio — the clinically studied pairing that eliminates jitters while preserving alertness.',
-        '80-100': '200mg caffeine is the upper threshold for sustained energy without diminishing returns. Electrolytes are scaled to support a larger body mass through cellular hydration.',
-        over100:  '200mg caffeine split across two tablets improves absorption kinetics. The full electrolyte dose supports a higher body mass and more demanding metabolic baseline.'
-      },
-      howItWorks: 'Caffeine works by blocking adenosine receptors — adenosine is the compound that builds up through the day and signals fatigue. L-Theanine prevents the anxious, jittery side effect by promoting alpha wave activity while caffeine is active. The B-vitamin stack provides cofactors for mitochondrial energy production, meaning your cells convert nutrients to ATP more efficiently. <strong>Switch On is not a stimulant — it is a metabolic support system</strong> that makes the energy you have more accessible. The electrolyte complex ensures that energy isn\'t lost to subclinical dehydration — a state most people are in before 9am.',
-      ingredients: [
-        {
-          name: 'Caffeine Anhydrous',
-          amount: '100–200mg',
-          desc: 'The world\'s most studied cognitive performance compound. Adenosine receptor antagonism improves reaction time, working memory, and sustained attention. Anhydrous form provides consistent absorption compared to caffeine from botanical sources.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/20492310',
-          refLabel: 'PubMed: Caffeine & cognitive performance (Nehlig, 2010)'
-        },
-        {
-          name: 'L-Theanine',
-          amount: '100–200mg (1:1 ratio)',
-          desc: 'Paired at a 1:1 ratio with caffeine — the combination studied extensively for eliminating caffeine side effects while preserving and enhancing its cognitive benefits. The synergy produces a state of "calm alertness" not achieved by either compound alone.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/18681988',
-          refLabel: 'PubMed: Caffeine + L-Theanine synergy (Haskell et al., 2008)'
-        },
-        {
-          name: 'Electrolyte Complex',
-          amount: 'Sodium 200mg, Potassium 150mg, Magnesium 50mg',
-          desc: 'Even mild dehydration (1–2% body weight) reduces cognitive performance by up to 30%. This electrolyte matrix replaces what\'s lost overnight and supports sodium-potassium pumps in neurons — the mechanism behind nerve signal transmission.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/22190027',
-          refLabel: 'PubMed: Dehydration & cognitive performance (Adan, 2012)'
-        },
-        {
-          name: 'B-Vitamin Complex',
-          amount: 'B1, B2, B3, B6, B12 at NRV',
-          desc: 'B vitamins are cofactors for every step of cellular energy production — glycolysis, the citric acid cycle, and oxidative phosphorylation. Deficiency (particularly B12 and B6) is extremely common in India\'s vegetarian population and presents as fatigue, brain fog, and poor exercise recovery.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/26828517',
-          refLabel: 'PubMed: B-vitamins & energy metabolism (Kennedy, 2016)'
-        }
-      ]
+    magnesium: {
+      key: 'magnesium',
+      name: 'Not Just Magnesium',
+      nj: 'Four-form blend',
+      price: 1199,
+      format: 'Capsule · 60 caps',
+      rhythm: 'evening',
+      rhythmIcon: '🌙',
+      unit: '30-day supply',
+      concerns: ['foundation', 'sleep']
     },
-    weight: {
-      name: 'Lose It',
-      blend: 'Appetite & Metabolism Blend',
-      time: 'Take before meals, twice daily',
-      doses: { under60: '1 tablet', '60-80': '1 tablet', '80-100': '2 tablets', over100: '2 tablets' },
-      doseWhy: {
-        under60:  '5g soluble fibre provides satiety signalling appropriate for your caloric intake level. ALA at 200mg supports insulin sensitivity without hypoglycaemic risk.',
-        '60-80':  'At your weight, 5g fibre is the threshold where GLP-1 release (the natural appetite hormone) is meaningfully stimulated. ALA at 300mg reaches the dose studied for adipose tissue metabolism.',
-        '80-100': '8g fibre and 400mg ALA represent the upper efficacious range — appropriate for higher body mass where satiety signalling requires greater stimulus to overcome habituation.',
-        over100:  'At 100kg+, the full 2-tablet dose ensures fibre volume and ALA reach the therapeutic threshold for your body mass. Consistent twice-daily dosing is particularly important at this level.'
-      },
-      howItWorks: 'Lose It works on two distinct mechanisms. The soluble fibre complex (psyllium husk + beta-glucan) forms a viscous gel in the stomach that slows gastric emptying — physically creating a sense of fullness and reducing postprandial glucose spikes. This triggers the release of GLP-1, the same natural satiety hormone mimicked by pharmaceutical weight loss drugs, but through entirely dietary means. Alpha Lipoic Acid improves insulin sensitivity at the cellular level, meaning your body partitions nutrients toward energy use rather than fat storage. <strong>This is not appetite suppression — it is appetite recalibration</strong>. Within 2–3 weeks, most users report naturally reduced portion sizes and fewer cravings.',
-      ingredients: [
-        {
-          name: 'Soluble Fibre Complex',
-          amount: '5–8g per dose',
-          desc: 'A blend of psyllium husk and oat beta-glucan — both classified as soluble fibre with significant peer-reviewed evidence for appetite reduction, cholesterol modulation, and gut microbiome support. The viscous gel formed in the GI tract creates mechanical satiety, independently of hormonal signalling.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/26724486',
-          refLabel: 'PubMed: Beta-glucan & satiety (Dahl et al., 2015)'
-        },
-        {
-          name: 'Alpha Lipoic Acid (ALA)',
-          amount: '200–400mg',
-          desc: 'A potent mitochondrial antioxidant that improves insulin receptor sensitivity. ALA activates AMPK — a cellular energy sensor that shifts metabolism toward fat oxidation. Multiple trials show reductions in body weight, waist circumference, and fasting insulin in overweight adults over 8–12 weeks.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/21437556',
-          refLabel: 'PubMed: ALA & body weight reduction (Koh et al., 2011)'
-        },
-        {
-          name: 'Chromium Picolinate',
-          amount: '200mcg',
-          desc: 'An essential trace mineral that potentiates insulin action. Chromium deficiency — common in processed food diets — results in blood sugar instability and carbohydrate cravings. Supplementation at 200mcg has been shown to reduce binge eating episodes, carbohydrate cravings, and hunger ratings in clinical trials.',
-          ref: 'https://pubmed.ncbi.nlm.nih.gov/14519826',
-          refLabel: 'PubMed: Chromium & appetite control (Anton et al., 2008)'
-        }
-      ]
+    omega: {
+      key: 'omega',
+      name: 'Not Just Omega',
+      nj: 'Algal Omega-3 + K2 + CoQ10',
+      price: 1799,
+      format: 'Softgel · 60 softgels',
+      rhythm: 'evening',
+      rhythmIcon: '🌙',
+      unit: '30-day supply',
+      concerns: ['cardio', 'foundation']
+    },
+    skin: {
+      key: 'skin',
+      name: 'Not Just Collagen',
+      nj: 'Vegan collagen + glutathione + HA',
+      price: 2499,
+      format: 'Powder · 150g tub',
+      rhythm: 'anytime',
+      rhythmIcon: '✨',
+      unit: '30-day supply',
+      concerns: ['skin']
+    },
+    creatine: {
+      key: 'creatine',
+      name: 'Not Just Creatine',
+      nj: 'CreaPure monohydrate',
+      price: 1299,
+      format: 'Sachet · 30 sachets',
+      rhythm: 'morning',
+      rhythmIcon: '☀️',
+      unit: '30-day supply',
+      concerns: ['recovery', 'foundation']
+    },
+    brightbrew: {
+      key: 'brightbrew',
+      name: 'Bright Brew',
+      nj: 'Not Just Caffeine',
+      price: 899,
+      format: 'Sachet · Pack of 15',
+      rhythm: 'morning',
+      rhythmIcon: '☀️',
+      unit: '15-sachet pack',
+      concerns: ['energy']
     }
   };
 
-  // ── RESULTS ───────────────────────────────────────────────────
-  function buildResults() {
-    const name   = answers.name || 'there';
-    const goal   = answers.goal;
-    const weight = answers.weight || '60-80';
+  const WHY_COPY = {
+    sleep: 'Magnesium and melatonin ease the mind, so everything feels lighter.',
+    magnesium: 'The foundation mineral most Indian diets are short on — calm, sleep, muscle, mood.',
+    omega: 'Anti-inflammatory support that compounds over months — algal, vegan-friendly.',
+    skin: 'Collagen builders, glutathione and HA doing distinct jobs under the skin.',
+    creatine: 'The most-researched supplement in sports science. Strength, recovery, quiet.',
+    brightbrew: 'Clean focus without the crash — green tea caffeine with L-theanine.'
+  };
 
-    document.getElementById('resultGreeting').textContent = `Hi ${name} — your personalised stack`;
+  // ========================================
+  // STATE
+  // ========================================
+  let state = {
+    primary: null,
+    secondary: [],
+    sleep_pattern: null,
+    workout: null,
+    caffeine: null,
+    age: null,
+    safety: [],
+    cart: {}
+  };
 
-    let primary = 'sleep';
-    if (goal === 'energy') primary = 'energy';
-    if (goal === 'weight') primary = 'weight';
-    if (goal === 'all')    primary = 'sleep';
+  let currentQ = 1;
+  let history = [1];
 
-    const container = document.getElementById('stackBlocks');
-    container.innerHTML = '';
-
-    const renderBlock = (key, isSecondary = false) => {
-      const p = productData[key];
-      const dose = p.doses[weight];
-      const doseWhy = p.doseWhy[weight];
-
-      const block = document.createElement('div');
-      block.innerHTML = `
-        <div class="stack-section-label">${isSecondary ? 'Also recommended for you' : 'Your primary stack'}</div>
-        <div class="stack-block ${isSecondary ? 'stack-block--secondary' : ''}">
-          <div class="stack-block-header">
-            <div>
-              <div class="stack-block-sub">${p.blend}</div>
-              <div class="stack-block-title">${p.name}</div>
-              <div class="stack-block-timing">${p.time}</div>
-            </div>
-            <div class="stack-dose-box">
-              <div class="dose-label">Your dose</div>
-              <div class="dose-value">${dose}</div>
-              <div class="dose-why">${dose === '2 tablets' ? 'Higher dose' : 'Standard dose'}</div>
-            </div>
-          </div>
-
-          <div class="ingredients-section">
-            <div class="ingredients-label">What's in it — and why</div>
-            ${p.ingredients.map(ing => `
-              <div class="ingredient-row">
-                <div>
-                  <div class="ingredient-name-col">${ing.name}</div>
-                  <div class="ingredient-amount">${ing.amount}</div>
-                </div>
-                <div class="ingredient-desc">
-                  ${ing.desc}
-                  <br><a href="${ing.ref}" target="_blank" class="ingredient-ref">↗ ${ing.refLabel}</a>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-
-          <div class="how-section">
-            <div class="how-label">Why ${dose} — calibrated to your profile</div>
-            <div class="how-text">${doseWhy}</div>
-          </div>
-
-          <div class="how-section" style="border-top: 1px solid rgba(255,255,255,0.07); padding-top: 20px;">
-            <div class="how-label">How it works</div>
-            <div class="how-text">${p.howItWorks}</div>
-          </div>
-        </div>
-      `;
-      container.appendChild(block);
-    };
-
-    renderBlock(primary);
-    if (goal === 'all') renderBlock('energy', true);
-
-    const weightLabel = { under60: 'under 60kg', '60-80': '60–80kg', '80-100': '80–100kg', over100: '100kg+' }[weight] || weight;
-    const subCopy = {
-      sleep:  `Based on your profile — ${answers.age || '25-34'}, ${weightLabel}, ${answers.activity || 'moderately active'} — we've calibrated Lights Off to the dose and formulation most likely to work for you.`,
-      energy: `Your activity level and body weight shaped this recommendation. Switch On is calibrated for sustained output — not a spike.`,
-      weight: `Lose It works best taken consistently before your two largest meals. The dose is set for your weight bracket to ensure the fibre and ALA reach their therapeutic thresholds.`,
-      all:    `We've started you on your two highest-priority stacks. Your Day21 advisor will refine the full picture on your first check-in.`
-    };
-    document.getElementById('resultSub').textContent = subCopy[goal] || subCopy.sleep;
-  }
-  function updateProgress() {
-    const pct = Math.min((currentScreen / TOTAL_QUESTIONS) * 100, 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-    const visible = currentScreen > 0 && currentScreen < 10;
-    document.getElementById('backBtn').style.visibility = visible ? 'visible' : 'hidden';
-    const isResult = currentScreen === 10;
-    document.getElementById('stepLabel').textContent =
-      isResult ? '' : currentScreen === 0 ? '' : `${currentScreen} of ${TOTAL_QUESTIONS}`;
-  }
-
-  // ── OPTION SELECTION ──────────────────────────────────────────
-  function selectOpt(el, key, val) {
-    el.closest('.options, .options--grid, .options--grid-3')
-      .querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-    answers[key] = val;
-
-    // Branch: set energy question text based on activity
-    if (key === 'activity') {
-      const exerciser = ['moderate', 'active'].includes(val);
-      document.getElementById('energyQ').textContent = exerciser
-        ? 'Do you struggle to make energy for exercise?'
-        : 'Do you struggle to start the morning?';
-      document.getElementById('energySub').textContent = exerciser
-        ? 'Think about how you feel going into a training session.'
-        : 'Think about your energy in the first two hours after waking.';
+  // ========================================
+  // QUESTION FLOW LOGIC
+  // ========================================
+  function getNextQuestion(from) {
+    const concerns = getAllConcerns();
+    switch (from) {
+      case 1: return 2;
+      case 2:
+        if (concerns.includes('sleep')) return 3;
+        if (concerns.includes('recovery') || concerns.includes('energy')) return 4;
+        if (concerns.includes('energy')) return 5;
+        return 6;
+      case 3:
+        if (concerns.includes('recovery') || concerns.includes('energy')) return 4;
+        if (concerns.includes('energy')) return 5;
+        return 6;
+      case 4:
+        if (concerns.includes('energy')) return 5;
+        return 6;
+      case 5: return 6;
+      case 6:
+        if (state.age === 'under18') return 'deadend';
+        return 7;
+      case 7: return 'result';
     }
-
-    const nextBtn = document.getElementById(`next-${currentScreen}`);
-    if (nextBtn) nextBtn.disabled = false;
   }
 
-  function selectBodyOpt(el, key, val) {
-    document.querySelectorAll('.body-opt').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-    answers[key] = val;
-    const nextBtn = document.getElementById(`next-${currentScreen}`);
-    if (nextBtn) nextBtn.disabled = false;
+  function getAllConcerns() {
+    let all = [];
+    if (state.primary) all.push(state.primary);
+    if (state.secondary) all = all.concat(state.secondary);
+    return all;
   }
 
-  // ── NAVIGATION ────────────────────────────────────────────────
-  function nextScreen() {
-    let next = currentScreen + 1;
+  // ========================================
+  // NAVIGATION
+  // ========================================
+  function showStep(step) {
+    document.querySelectorAll('.question-view').forEach(v => v.classList.remove('active'));
+    document.getElementById('result').classList.remove('active');
+    document.getElementById('customize').classList.remove('active');
+    document.getElementById('deadend').classList.remove('active');
 
-    // Skip sleep question if goal is not sleep or all
-    if (next === 7 && answers.goal !== 'sleep' && answers.goal !== 'all') {
-      next = 8;
+    if (step === 'result') {
+      document.getElementById('result').classList.add('active');
+      document.getElementById('progressWrap').style.display = 'none';
+      renderResult();
+    } else if (step === 'customize') {
+      document.getElementById('customize').classList.add('active');
+      document.getElementById('progressWrap').style.display = 'none';
+      renderCart();
+    } else if (step === 'deadend') {
+      document.getElementById('deadend').classList.add('active');
+      document.getElementById('progressWrap').style.display = 'none';
+    } else {
+      const v = document.querySelector(`[data-q="${step}"]`);
+      if (v) v.classList.add('active');
+      document.getElementById('progressWrap').style.display = '';
+      updateProgress(step);
+      if (step === 2) renderSecondaryOptions();
     }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-    goToScreen(next);
+  function updateProgress(step) {
+    // Approximate steps user will see
+    const total = 7;
+    const pct = Math.round((step / total) * 100);
+    document.getElementById('progressStep').textContent = `Step ${step} of ${total}`;
+    document.getElementById('progressPct').textContent = `${pct}%`;
+    document.getElementById('progressFill').style.width = `${pct}%`;
+  }
+
+  function goNext() {
+    const next = getNextQuestion(currentQ);
+    history.push(currentQ);
+    currentQ = next;
+    showStep(next);
   }
 
   function goBack() {
-    let prev = currentScreen - 1;
-    if (prev === 7 && answers.goal !== 'sleep' && answers.goal !== 'all') {
-      prev = 6;
+    if (history.length > 0) {
+      currentQ = history.pop();
+      showStep(currentQ);
     }
-    if (prev < 0) return;
-    goToScreen(prev, true);
   }
 
-  function goToScreen(n, back = false) {
-    const current = document.getElementById(`screen-${currentScreen}`);
-    current.classList.add('exit');
-    setTimeout(() => {
-      current.classList.remove('active', 'exit');
-      currentScreen = n;
-      const next = document.getElementById(`screen-${currentScreen}`);
-      next.classList.add('active');
-      updateProgress();
-      if (currentScreen === 10) buildResults();
-    }, 360);
-  }
+  // ========================================
+  // QUESTION HANDLERS
+  // ========================================
+  document.querySelectorAll('.question-view').forEach(view => {
+    const qNum = parseInt(view.dataset.q);
+    const answers = view.querySelectorAll('.answer');
+    const nextBtn = view.querySelector('[data-next]');
+    const backBtn = view.querySelector('[data-back]');
+    const answersWrap = view.querySelector('.answers');
+    const isMulti = answersWrap && answersWrap.hasAttribute('data-multi');
+    const maxSelect = answersWrap ? parseInt(answersWrap.dataset.max || 99) : 1;
+    const stateKey = answersWrap ? (answersWrap.dataset.single || answersWrap.dataset.multi) : null;
 
-  // ── CONTACT FORM ──────────────────────────────────────────────
-  function checkContactForm() {
-    const name  = document.getElementById('nameInput').value.trim();
-    const phone = document.getElementById('phoneInput').value.trim();
-    const btn   = document.getElementById('next-8');
-    btn.disabled = !(name.length >= 2 && phone.length === 10 && /^\d+$/.test(phone));
-  }
+    answers.forEach(ans => {
+      ans.addEventListener('click', () => {
+        const val = ans.dataset.value;
+        if (isMulti) {
+          // Special case for "none" on safety - exclusive
+          if (stateKey === 'safety' && val === 'none') {
+            answers.forEach(a => a.classList.remove('selected'));
+            ans.classList.add('selected');
+            state.safety = ['none'];
+          } else if (stateKey === 'safety' && val !== 'none') {
+            // unselect "none" if picking anything else
+            answers.forEach(a => {
+              if (a.dataset.value === 'none') a.classList.remove('selected');
+            });
+            if (state.safety.includes('none')) state.safety = state.safety.filter(s => s !== 'none');
+            ans.classList.toggle('selected');
+            if (ans.classList.contains('selected')) {
+              if (!state.safety.includes(val)) state.safety.push(val);
+            } else {
+              state.safety = state.safety.filter(s => s !== val);
+            }
+          } else {
+            // Regular multi (secondary)
+            const selected = [...answers].filter(a => a.classList.contains('selected'));
+            if (!ans.classList.contains('selected') && selected.length >= maxSelect) return;
+            ans.classList.toggle('selected');
+            const newVals = [...answers]
+              .filter(a => a.classList.contains('selected'))
+              .map(a => a.dataset.value);
+            state[stateKey] = newVals;
+          }
+        } else {
+          answers.forEach(a => a.classList.remove('selected'));
+          ans.classList.add('selected');
+          state[stateKey] = val;
+        }
+        const hasSelection = isMulti
+          ? (stateKey === 'safety' ? state.safety.length > 0 : true)  // secondary is optional
+          : [...answers].some(a => a.classList.contains('selected'));
+        if (stateKey === 'secondary') {
+          nextBtn.disabled = false;  // secondary is optional
+        } else if (stateKey === 'safety') {
+          nextBtn.disabled = state.safety.length === 0;
+        } else {
+          nextBtn.disabled = !hasSelection;
+        }
+      });
+    });
 
-  // ── OTP ───────────────────────────────────────────────────────
-  function sendOTP() {
-    const phone = document.getElementById('phoneInput').value.trim();
-    const err   = document.getElementById('phoneError');
-    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-      err.classList.add('show'); return;
+    if (nextBtn) {
+      nextBtn.addEventListener('click', goNext);
     }
-    err.classList.remove('show');
-    answers.name  = document.getElementById('nameInput').value.trim();
-    answers.phone = phone;
+    if (backBtn) {
+      backBtn.addEventListener('click', goBack);
+    }
+  });
 
-    const sub = document.getElementById('otpSub');
-    sub.textContent = `Code sent to +91 ${phone.slice(0,5)}XXXXX`;
-    goToScreen(9);
+  // Q2 is always enabled (optional)
+  document.querySelector('[data-q="2"] [data-next]').disabled = false;
+
+  // ========================================
+  // RENDER Q2 DYNAMICALLY (exclude primary)
+  // ========================================
+  function renderSecondaryOptions() {
+    const wrap = document.getElementById('secondaryAnswers');
+    const options = [
+      { value: 'sleep', label: 'Better sleep' },
+      { value: 'energy', label: 'More energy during the day' },
+      { value: 'skin', label: 'Stronger, healthier skin' },
+      { value: 'recovery', label: 'Recovery from workouts' },
+      { value: 'cardio', label: 'Long-term heart health' },
+      { value: 'foundation', label: 'A general foundation' }
+    ];
+    wrap.innerHTML = '';
+    options.forEach(opt => {
+      if (opt.value === state.primary) return;
+      const btn = document.createElement('button');
+      btn.className = 'answer';
+      btn.dataset.value = opt.value;
+      btn.setAttribute('data-multi', 'true');
+      if (state.secondary && state.secondary.includes(opt.value)) btn.classList.add('selected');
+      btn.innerHTML = `<span>${opt.label}</span><span class="answer-check"></span>`;
+      btn.addEventListener('click', () => {
+        const selected = wrap.querySelectorAll('.answer.selected');
+        if (!btn.classList.contains('selected') && selected.length >= 2) return;
+        btn.classList.toggle('selected');
+        state.secondary = [...wrap.querySelectorAll('.answer.selected')].map(a => a.dataset.value);
+      });
+      wrap.appendChild(btn);
+    });
   }
 
-  function checkOTP(input) {
-    const val = input.value;
-    const err = document.getElementById('otpError');
-    const badge = document.getElementById('verifiedBadge');
-    const btn = document.getElementById('next-9');
-    const hint = document.getElementById('otpHint');
+  // ========================================
+  // RECOMMENDATION LOGIC
+  // ========================================
+  function buildRecommendation() {
+    const concerns = getAllConcerns();
+    const safety = state.safety || [];
 
-    input.classList.remove('error', 'success');
-    err.classList.remove('show');
-    badge.classList.remove('show');
-    btn.disabled = true;
+    // Product eligibility based on safety
+    const excluded = new Set();
+    if (safety.includes('pregnant')) {
+      excluded.add('sleep'); // melatonin, valerian
+      excluded.add('brightbrew'); // caffeine
+    }
+    if (safety.includes('bloodthinner')) {
+      excluded.add('sleep'); // valerian
+      excluded.add('omega'); // K2 vs warfarin
+    }
+    if (safety.includes('antidep')) {
+      excluded.add('sleep'); // valerian CYP3A4
+      excluded.add('brightbrew'); // caffeine MAOI
+    }
+    if (safety.includes('kidneyliver')) {
+      excluded.add('creatine'); // creatinine marker concern
+      excluded.add('magnesium'); // clearance
+    }
 
-    if (val.length === 4) {
-      if (val === '9999') {
-        input.classList.add('success');
-        badge.classList.add('show');
-        hint.style.display = 'none';
-        btn.disabled = false;
-      } else {
-        input.classList.add('error');
-        err.classList.add('show');
+    // Map concerns to products in priority order
+    const concernMap = {
+      sleep: () => {
+        // Use sleep_pattern to route
+        if (state.sleep_pattern === 'falling') return 'sleep';
+        if (state.sleep_pattern === 'waking') return 'magnesium';
+        if (state.sleep_pattern === 'fragmented') return 'magnesium';
+        return 'sleep';
+      },
+      energy: () => {
+        if (state.caffeine === 'heavy') return 'magnesium'; // already caffeinated, help foundation
+        return 'brightbrew';
+      },
+      skin: () => 'skin',
+      recovery: () => {
+        if (state.workout === 'rarely') return 'magnesium'; // creatine overkill
+        return 'creatine';
+      },
+      cardio: () => 'omega',
+      foundation: () => 'magnesium'
+    };
+
+    // Build pair: primary concern product + secondary concern product(s)
+    const picks = [];
+    const primaryProduct = concernMap[state.primary] && concernMap[state.primary]();
+    if (primaryProduct && !excluded.has(primaryProduct)) picks.push(primaryProduct);
+
+    // Add from secondary concerns
+    for (const sec of (state.secondary || [])) {
+      if (picks.length >= 2) break;
+      const p = concernMap[sec] && concernMap[sec]();
+      if (p && !excluded.has(p) && !picks.includes(p)) picks.push(p);
+    }
+
+    // If only 1 pick so far, add foundation (magnesium or omega) based on concerns
+    if (picks.length < 2) {
+      const fallbacks = ['magnesium', 'omega', 'skin', 'creatine'];
+      for (const f of fallbacks) {
+        if (picks.length >= 2) break;
+        if (!excluded.has(f) && !picks.includes(f)) picks.push(f);
       }
     }
+
+    // Consider later: pick next product not in picks, prioritized by concerns
+    let later = null;
+    const allOrdered = ['omega', 'magnesium', 'skin', 'creatine', 'sleep', 'brightbrew'];
+    // Prefer one tied to their stated concerns first
+    for (const c of concerns) {
+      const p = concernMap[c] && concernMap[c]();
+      if (p && !picks.includes(p) && !excluded.has(p)) { later = p; break; }
+    }
+    if (!later) {
+      for (const p of allOrdered) {
+        if (!picks.includes(p) && !excluded.has(p)) { later = p; break; }
+      }
+    }
+
+    return { picks, later, excluded: [...excluded] };
   }
 
-  // ── INIT ──────────────────────────────────────────────────────
-  updateProgress();
+  // ========================================
+  // RENDER RESULT
+  // ========================================
+  function renderResult() {
+    const rec = buildRecommendation();
+
+    // Populate pair list
+    const list = document.getElementById('pairList');
+    list.innerHTML = '';
+    let total = 0;
+    rec.picks.forEach(key => {
+      const p = PRODUCTS[key];
+      total += p.price;
+      const perDay = (p.price / 30).toFixed(0);
+      const li = document.createElement('li');
+      li.className = 'pair-item';
+      li.innerHTML = `
+        <div class="pair-rhythm ${p.rhythm}">${p.rhythmIcon}</div>
+        <div class="pair-body">
+          <div class="pair-name">${p.name}</div>
+          <div class="pair-nj">${p.nj}</div>
+          <div class="pair-why">${WHY_COPY[key]}</div>
+        </div>
+        <div class="pair-price">
+          <div class="pair-price-main">₹${p.price.toLocaleString('en-IN')}</div>
+          <div class="pair-price-sub">30-day supply</div>
+        </div>
+      `;
+      list.appendChild(li);
+    });
+
+    document.getElementById('pairTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+    const perDayTotal = Math.round(total / 30);
+    const perDayCopy = perDayTotal <= 100
+      ? `About ₹${perDayTotal} a day — the price of a filter coffee.`
+      : `₹${perDayTotal} a day across both products.`;
+    document.getElementById('pairPerday').innerHTML = `<strong>₹${perDayTotal}/day</strong> · ${perDayCopy}`;
+
+    // Update lede based on concerns
+    const ledeMap = {
+      sleep: "Start with what's keeping you up, and build around it.",
+      energy: 'Clean energy without overcorrection.',
+      skin: 'Work done from the inside out.',
+      recovery: 'Quiet strength, built across weeks.',
+      cardio: 'Preventive care that compounds over time.',
+      foundation: 'The foundations first. Everything else later.'
+    };
+    document.getElementById('resultLede').textContent = ledeMap[state.primary] || 'A two-part pairing, sized to your day.';
+
+    // Consider later card
+    if (rec.later) {
+      const later = PRODUCTS[rec.later];
+      document.getElementById('laterName').textContent = later.name;
+      document.getElementById('laterWhy').textContent = WHY_COPY[rec.later];
+      document.getElementById('laterCard').style.display = '';
+    } else {
+      document.getElementById('laterCard').style.display = 'none';
+    }
+
+    // Safety banner
+    const banner = document.getElementById('safetyBanner');
+    if (state.safety && state.safety.length > 0 && !state.safety.includes('none')) {
+      banner.innerHTML = `
+        <div class="safety-banner">
+          <strong>Before you start</strong>
+          Based on what you told us, please confirm this protocol with your doctor before starting. We've already excluded anything with a known interaction for you.
+        </div>`;
+    } else {
+      banner.innerHTML = '';
+    }
+
+    // Set up cart state
+    state.cart = {};
+    rec.picks.forEach(k => state.cart[k] = true);
+    state._later = rec.later;
+    state._excluded = rec.excluded;
+  }
+
+  // ========================================
+  // CUSTOMIZE / CART
+  // ========================================
+  function renderCart() {
+    const list = document.getElementById('cartList');
+    list.innerHTML = '';
+
+    const selectedKeys = Object.keys(state.cart).filter(k => state.cart[k]);
+    const laterKey = state._later;
+
+    // In-cart products
+    const inCartLabel = document.createElement('div');
+    inCartLabel.className = 'cart-section-label';
+    inCartLabel.style.marginTop = '0';
+    inCartLabel.style.paddingTop = '0';
+    inCartLabel.style.border = 'none';
+    inCartLabel.textContent = 'In your protocol';
+    list.appendChild(inCartLabel);
+
+    const allKeys = Object.keys(PRODUCTS);
+    const ordered = [
+      ...selectedKeys,
+      ...(laterKey && !selectedKeys.includes(laterKey) ? [laterKey] : []),
+      ...allKeys.filter(k => !selectedKeys.includes(k) && k !== laterKey)
+    ];
+
+    let laterSeparatorAdded = false;
+    let othersSeparatorAdded = false;
+
+    ordered.forEach((key, idx) => {
+      const p = PRODUCTS[key];
+      const isSelected = !!state.cart[key];
+      const isExcluded = state._excluded && state._excluded.includes(key);
+
+      // Insert separator before later / others
+      if (!isSelected && key === laterKey && !laterSeparatorAdded) {
+        const label = document.createElement('div');
+        label.className = 'cart-section-label';
+        label.textContent = 'Consider adding';
+        list.appendChild(label);
+        laterSeparatorAdded = true;
+      } else if (!isSelected && key !== laterKey && !othersSeparatorAdded && laterSeparatorAdded) {
+        const label = document.createElement('div');
+        label.className = 'cart-section-label';
+        label.textContent = 'Or browse the full range';
+        list.appendChild(label);
+        othersSeparatorAdded = true;
+      } else if (!isSelected && !laterKey && !othersSeparatorAdded) {
+        const label = document.createElement('div');
+        label.className = 'cart-section-label';
+        label.textContent = 'Add more';
+        list.appendChild(label);
+        othersSeparatorAdded = true;
+      }
+
+      const row = document.createElement('div');
+      row.className = `cart-row ${isSelected ? 'active' : 'inactive'}`;
+      row.innerHTML = `
+        <div class="cart-check" data-key="${key}"></div>
+        <div class="cart-body">
+          <div class="cart-name">${p.name}</div>
+          <div class="cart-nj">${p.nj}</div>
+          <div class="cart-meta">${p.format} · ${p.unit}${isExcluded ? ' · Excluded based on safety answers' : ''}</div>
+        </div>
+        <div class="cart-price">
+          <div class="cart-price-main">₹${p.price.toLocaleString('en-IN')}</div>
+          <div class="cart-price-sub">₹${Math.round(p.price/30)}/day</div>
+        </div>
+      `;
+      const check = row.querySelector('.cart-check');
+      check.addEventListener('click', () => {
+        if (isExcluded) {
+          alert('This product is excluded based on your safety answers. Please consult your doctor before adding.');
+          return;
+        }
+        state.cart[key] = !state.cart[key];
+        renderCart();
+      });
+      list.appendChild(row);
+    });
+
+    // Totals
+    const total = selectedKeys.reduce((sum, k) => sum + PRODUCTS[k].price, 0);
+    document.getElementById('cartTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+    if (selectedKeys.length === 0) {
+      document.getElementById('cartPerday').textContent = '';
+      document.getElementById('cartEmptyMsg').style.display = '';
+      document.getElementById('checkoutBtn').disabled = true;
+    } else {
+      const perDay = Math.round(total / 30);
+      const line = perDay <= 100
+        ? `About ₹${perDay} a day · the price of a filter coffee`
+        : `₹${perDay} a day across your protocol`;
+      document.getElementById('cartPerday').textContent = line;
+      document.getElementById('cartEmptyMsg').style.display = 'none';
+      document.getElementById('checkoutBtn').disabled = false;
+    }
+  }
+
+  // ========================================
+  // BUTTON WIRING
+  // ========================================
+  document.getElementById('customizeBtn').addEventListener('click', () => {
+    showStep('customize');
+  });
+  document.getElementById('backToResult').addEventListener('click', () => {
+    showStep('result');
+  });
+  document.getElementById('checkoutBtn').addEventListener('click', () => {
+    alert('Checkout is coming soon. For now, this preview shows you the protocol flow.');
+  });
 </script>
+
 </body>
 </html>
