@@ -1,1 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 21 — Formulation & Evidence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fafafa;
+    --ink: #0a0a0a;
+    --ink-2: #2a2a2a;
+    --ink-3: #5a5a5a;
+    --ink-4: #8a8a8a;
+    --line: #e8e8e8;
+    --line-2: #f0f0f0;
 
+    --cyan: #00d9e8;
+    --cyan-deep: #00a8b5;
+    --cyan-ink: #006b74;
+    --cyan-wash: #e6fcfe;
+    --amber: #c47a00;
+    --amber-wash: #fff4de;
+    --red: #b42318;
+    --red-wash: #fef3f2;
+    --green: #0a7a3d;
+    --green-wash: #e8f8ee;
+
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* HEADER / TABS */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .brand {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .brand span { color: var(--cyan-deep); }
+  .brand-tag {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 500;
+  }
+  .hamburger {
+    display: none;
+    background: none; border: 1px solid var(--line);
+    width: 40px; height: 40px; border-radius: 8px;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+  }
+  .hamburger svg { width: 18px; height: 18px; stroke: var(--ink); }
+
+  .tabs {
+    display: flex; gap: 2px;
+    padding: 0 20px 0;
+    max-width: 1200px; margin: 0 auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: none; border: none;
+    padding: 14px 18px 16px;
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--cyan-deep); }
+  .tab-num {
+    font-family: var(--display);
+    font-size: 11px;
+    color: var(--ink-4);
+    margin-right: 6px;
+    font-feature-settings: "tnum";
+  }
+  .tab.active .tab-num { color: var(--cyan-ink); }
+
+  @media (max-width: 720px) {
+    .hamburger { display: flex; }
+    .tabs { display: none; flex-direction: column; padding: 0; background: #fff; border-top: 1px solid var(--line); }
+    .tabs.open { display: flex; }
+    .tab { padding: 14px 20px; border-bottom: 1px solid var(--line-2); text-align: left; border-left: 3px solid transparent; border-right: 0; }
+    .tab.active { border-bottom-color: var(--line-2); border-left-color: var(--cyan-deep); }
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 1200px; margin: 0 auto;
+    padding: 56px 20px 24px;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan-ink);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(32px, 5.5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    max-width: 780px;
+  }
+  .hero h1 em { font-style: italic; color: var(--cyan-ink); font-weight: 400; }
+  .hero p {
+    margin-top: 20px;
+    max-width: 640px;
+    color: var(--ink-3);
+    font-size: 16px;
+  }
+
+  /* PRODUCT SHELL */
+  .product {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+  .product-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 40px 0 32px;
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 860px) {
+    .product-header { grid-template-columns: 1.2fr 1fr; gap: 64px; }
+  }
+  .product-id {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .names { display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; }
+  .name-emo {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .name-nj {
+    font-weight: 600;
+    font-size: clamp(18px, 2.4vw, 22px);
+    color: var(--cyan-ink);
+    letter-spacing: -0.01em;
+  }
+  .name-note { font-size: 11px; color: var(--ink-4); font-style: italic; margin-top: 6px; }
+  .product-line { color: var(--ink-2); font-size: 15px; max-width: 460px; margin-bottom: 20px; }
+
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  @media (min-width: 480px) { .quick-grid { grid-template-columns: repeat(4, 1fr); } }
+  .quick { background: #fff; padding: 14px 14px; }
+  .quick-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .quick-value {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* SECTIONS */
+  .section { padding: 36px 0; border-top: 1px solid var(--line); }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .section-num {
+    font-family: var(--display);
+    font-size: 13px;
+    color: var(--ink-4);
+    font-feature-settings: "tnum";
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .section-sub { color: var(--ink-3); font-size: 14px; max-width: 640px; margin-top: -8px; margin-bottom: 18px; }
+
+  /* INGREDIENTS TABLE */
+  .ingredients { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .ing-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 20px 20px;
+    border-bottom: 1px solid var(--line-2);
+    gap: 14px;
+  }
+  .ing-row:last-child { border-bottom: 0; }
+  @media (min-width: 760px) {
+    .ing-row { grid-template-columns: 1.3fr 1fr 1fr 1.2fr; align-items: start; padding: 22px 22px; gap: 20px; }
+  }
+  .ing-head {
+    background: var(--surface);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 600;
+    padding: 12px 22px;
+    display: none;
+  }
+  @media (min-width: 760px) { .ing-head { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1.2fr; gap: 20px; } }
+  .ing-name { font-weight: 600; font-size: 15px; }
+  .ing-form { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .ing-cell-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+  @media (min-width: 760px) { .ing-cell-label { display: none; } }
+  .dose-current {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 500;
+    font-feature-settings: "tnum";
+  }
+  .dose-examine {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--cyan-ink);
+    font-feature-settings: "tnum";
+  }
+  .dose-note { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .dose-flag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px;
+    color: var(--amber);
+    background: var(--amber-wash);
+    padding: 3px 8px;
+    border-radius: 100px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  .dose-flag.match { color: var(--green); background: var(--green-wash); }
+  .dose-flag.na { color: var(--ink-3); background: var(--line-2); }
+
+  /* CALLOUTS */
+  .callout {
+    padding: 18px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    margin: 20px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .callout strong {
+    display: block;
+    font-family: var(--display);
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .callout.amber { background: var(--amber-wash); border-color: #f3dcb0; }
+  .callout.amber strong { color: #6b4200; }
+  .callout.red { background: var(--red-wash); border-color: #fecaca; }
+  .callout.red strong { color: #7a1510; }
+  .callout.cyan { background: var(--cyan-wash); border-color: #b9f0f6; }
+  .callout.cyan strong { color: var(--cyan-ink); }
+
+  /* PILL COUNT COMPARISON (NEW) */
+  .pill-compare {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 14px 0;
+  }
+  @media (min-width: 720px) {
+    .pill-compare { grid-template-columns: 1fr 1fr; }
+  }
+  .pill-card {
+    padding: 22px 22px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    position: relative;
+  }
+  .pill-card.recommended {
+    border: 1.5px solid var(--cyan-deep);
+    background: var(--cyan-wash);
+  }
+  .pill-card-label {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .pill-card.recommended .pill-card-label { color: var(--cyan-ink); }
+  .pill-card-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: var(--cyan-deep);
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 520px) {
+    .pill-card-tag {
+      position: absolute;
+      top: 16px; right: 16px;
+      margin-bottom: 0;
+    }
+  }
+  .pill-row-vis {
+    display: flex; gap: 6px; align-items: center;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+  .pill-icon {
+    width: 42px; height: 16px;
+    border-radius: 100px;
+    background: linear-gradient(90deg, #f5f5f5 0 50%, #fff 50% 100%);
+    border: 1.5px solid var(--ink-2);
+    position: relative;
+  }
+  .pill-icon::after {
+    content: ''; position: absolute;
+    left: 50%; top: -1.5px; bottom: -1.5px;
+    width: 1.5px; background: var(--ink-2);
+  }
+  .sachet-icon {
+    width: 34px; height: 44px;
+    border: 1.5px solid var(--ink-2);
+    border-radius: 3px;
+    position: relative;
+    background: repeating-linear-gradient(45deg, #fafafa 0 3px, #fff 3px 6px);
+    flex-shrink: 0;
+  }
+  .sachet-icon::before {
+    content: ''; position: absolute;
+    top: -3px; left: -2px; right: -2px; height: 5px;
+    background: var(--ink-2);
+    border-radius: 1px;
+  }
+  .softgel-icon {
+    width: 42px; height: 20px;
+    border-radius: 100px;
+    background: linear-gradient(180deg, #f5a623 0 100%);
+    border: 1.5px solid #a36f00;
+  }
+  .pill-count {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 500;
+    margin: 4px 0;
+    letter-spacing: -0.01em;
+  }
+  .pill-detail {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-top: 6px;
+    line-height: 1.55;
+  }
+  .pill-dose-delivered {
+    font-size: 12px;
+    color: var(--ink-2);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+  .pill-dose-delivered strong { font-weight: 600; color: var(--ink); }
+
+  /* Highlighted fallback note */
+  .fallback-note {
+    padding: 14px 18px;
+    background: var(--amber-wash);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .fallback-note strong { color: #6b4200; font-weight: 600; }
+
+  /* EVIDENCE BARS */
+  .evidence-block {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  @media (min-width: 640px) { .evidence-block { grid-template-columns: 1fr 1fr; } }
+  .evidence-item {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .ev-ingredient { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+  .ev-bar { height: 6px; background: var(--line-2); border-radius: 100px; overflow: hidden; margin-bottom: 8px; }
+  .ev-fill { height: 100%; background: var(--cyan-deep); border-radius: 100px; }
+  .ev-rating {
+    display: flex; justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .ev-rating strong { color: var(--ink); font-weight: 600; }
+  .ev-note { font-size: 13px; color: var(--ink-3); margin-top: 10px; line-height: 1.5; }
+
+  /* SAFETY */
+  .safety-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 640px) { .safety-grid { grid-template-columns: 1fr 1fr; } }
+  .safety-item {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .safety-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .dot-amber { background: var(--amber); }
+  .dot-red { background: var(--red); }
+  .dot-green { background: var(--green); }
+  .safety-cond { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .safety-text { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+
+  /* STACK PAIRINGS */
+  .stack-list { display: flex; flex-direction: column; gap: 10px; }
+  .stack-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .stack-badge {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 100px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge-pair { background: var(--green-wash); color: var(--green); }
+  .badge-space { background: var(--amber-wash); color: var(--amber); }
+  .badge-skip { background: var(--red-wash); color: var(--red); }
+  .stack-with { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .stack-text { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+
+  .cite { font-size: 11px; color: var(--ink-4); font-style: italic; margin-top: 10px; line-height: 1.55; }
+
+  /* DAY ARC */
+  .day-arc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .day-step { padding: 14px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .day-num {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--cyan-ink);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .day-text { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+  @media (max-width: 560px) { .day-arc { grid-template-columns: repeat(2, 1fr); } }
+
+  /* OPEN QUESTIONS LIST */
+  .q-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .q-list li {
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .q-list li strong {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* STACK MATRIX */
+  .matrix-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  table.matrix {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 13px;
+  }
+  .matrix th, .matrix td {
+    padding: 12px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--line-2);
+    border-right: 1px solid var(--line-2);
+  }
+  .matrix th:last-child, .matrix td:last-child { border-right: 0; }
+  .matrix tr:last-child td { border-bottom: 0; }
+  .matrix thead th {
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .matrix th:first-child, .matrix td:first-child {
+    text-align: left;
+    font-weight: 600;
+    background: var(--surface);
+    font-size: 12px;
+  }
+  .m-cell {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .m-pair { background: var(--green-wash); color: var(--green); }
+  .m-space { background: var(--amber-wash); color: var(--amber); }
+  .m-skip { background: var(--red-wash); color: var(--red); }
+  .m-self { color: var(--ink-4); font-size: 12px; }
+
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* FOOT */
+  .foot {
+    max-width: 1200px; margin: 0 auto;
+    padding: 36px 20px 48px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-4);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .foot strong { color: var(--ink-3); font-weight: 600; }
+  .source-note {
+    margin: 20px 0;
+    padding: 20px 22px;
+    background: var(--cyan-wash);
+    border-left: 3px solid var(--cyan-deep);
+    border-radius: 0 8px 8px 0;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-style: normal;
+    line-height: 1.6;
+  }
+  .source-note strong { display: block; color: var(--cyan-ink); margin-bottom: 6px; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER + TABS -->
+<header class="topbar">
+  <div class="brand-row">
+    <a href="index.html" style="text-decoration: none; color: inherit; display: block;">
+      <div class="brand">day<span>21</span></div>
+      <div class="brand-tag">Formulation & Evidence</div>
+    </a>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a href="index.html" style="font-size: 13px; font-weight: 500; color: var(--ink-3); text-decoration: none;">← Back to site</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-target="sleep"><span class="tab-num">01</span>Sleep</button>
+    <button class="tab" data-target="skin"><span class="tab-num">02</span>Skin</button>
+    <button class="tab" data-target="energy"><span class="tab-num">03</span>Energy</button>
+    <button class="tab" data-target="magnesium"><span class="tab-num">04</span>Magnesium</button>
+    <button class="tab" data-target="omega"><span class="tab-num">05</span>Omega</button>
+    <button class="tab" data-target="creatine"><span class="tab-num">06</span>Creatine</button>
+    <button class="tab" data-target="stack"><span class="tab-num">07</span>Stack</button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Internal Reference · v2.0</div>
+  <h1>Six products. <em>Built on evidence,</em> built to blend, built to last a day.</h1>
+  <p>Formulation, dosage, format and safety for the Day 21 launch range — current spec shown side by side with evidence-supported dosages, and cross-checked against manufacturability. Product names are indicative and not yet locked.</p>
+</section>
+
+<!-- =========================================== -->
+<!-- PRODUCT 01 — SLEEP                         -->
+<!-- =========================================== -->
+<main class="product panel active" id="sleep">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 01 · Sleep</div>
+      <div class="names">
+        <div class="name-emo">Rest Assured</div>
+        <div class="name-nj">Not Just Melatonin</div>
+        <div class="name-note">— emotional and ingredient-led name both drawn from brand guidelines</div>
+      </div>
+      <p class="product-line">Picture this, floating away into sleep instead of staring at the ceiling. A four-ingredient nighttime capsule designed to help you fall asleep faster and stay asleep through the night.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Capsule</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">2 caps</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">30 min pre-bed</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">Yes, cycle</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">Four ingredients that target the two distinct sleep problems: time-to-fall-asleep and sleep quality.</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Melatonin</div><div class="ing-form">Sleep-onset hormone</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">0.8 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">0.5 – 5 mg</div><div class="dose-note">Start at 0.5 mg, increase weekly to lowest effective dose</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Reduces time-to-sleep only, not sleep quality. Current dose is within range.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Magnesium Glycinate</div><div class="ing-form">Chelated mineral, bedtime-friendly form</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">120 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">200 – 350 mg</div><div class="dose-note">Elemental magnesium, bedtime dose</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Current 120 mg is below the effective range. Recommend raising to at least 200 mg elemental.</div><span class="dose-flag">● underdosed</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Tagar (Valerian)</div><div class="ing-form">Valeriana wallichii root extract</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">300 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">450 mg</div><div class="dose-note">Standardised for 0.8–1% valerenic acids</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">450 mg is the evidence-supported dose. 300 mg is sub-clinical unless extract is more concentrated.</div><span class="dose-flag">● confirm extract strength</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Passion Flower</div><div class="ing-form">Passiflora incarnata extract</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">250 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">250 – 500 mg</div><div class="dose-note">Traditional range in anxiety research</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Supporting role for calm; evidence weaker than the other three ingredients.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <p class="section-sub">Three questions matter: chemical stability, absorption interference, and compounding effects.</p>
+    <div class="callout cyan">
+      <strong>Yes, this blend is standard industry practice.</strong>
+      All four ingredients are dry, thermally stable, and compatible in a single capsule. There are no known absorption conflicts between melatonin, magnesium glycinate, valerian and passion flower. Magnesium glycinate specifically avoids the intestinal distress associated with magnesium oxide.
+    </div>
+    <div class="callout amber">
+      <strong>One formulation note</strong>
+      Magnesium competes with calcium, zinc and iron for absorption when taken together at combined doses above 800 mg. At 200 mg magnesium this isn't an issue for the product itself, but flag it for users taking multivitamins or separate mineral supplements at bedtime.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How many pills, and when?</h2></div>
+    <p class="section-sub">Shown side by side: what the current formulation delivers per pill count versus what the evidence-supported formulation would require.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card">
+        <div class="pill-card-label">Current formulation</div>
+        <div class="pill-row-vis"><div class="pill-icon"></div></div>
+        <div class="pill-count">1 capsule, once daily</div>
+        <div class="pill-detail">Total fill weight ~900 mg fits a size 0 capsule. Taken 30 minutes before bed.</div>
+        <div class="pill-dose-delivered">
+          <strong>Delivers:</strong> Melatonin 0.8mg · Mg Glycinate 120mg · Tagar 300mg · Passion Flower 250mg
+        </div>
+      </div>
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Recommended</div>
+        <div class="pill-card-label">Evidence-supported formulation</div>
+        <div class="pill-row-vis"><div class="pill-icon"></div><div class="pill-icon"></div></div>
+        <div class="pill-count">2 capsules, once daily</div>
+        <div class="pill-detail">Total fill weight ~1.6 g across two size 0 capsules. Taken together 30 minutes before bed.</div>
+        <div class="pill-dose-delivered">
+          <strong>Delivers:</strong> Melatonin 0.8mg · Mg Glycinate 200mg · Tagar 450mg · Passion Flower 300mg
+        </div>
+      </div>
+    </div>
+
+    <div class="fallback-note">
+      <strong>If current formulation is retained:</strong> A 1-capsule serving can ship as-is. Magnesium and Tagar will remain sub-clinical, but the product is still safe and will provide mild benefit. A 2-capsule serving of the current formulation (i.e. 240mg Mg + 600mg Tagar) would bring magnesium into the effective range but overshoot Tagar.
+    </div>
+
+    <div class="callout">
+      <strong>Dosage is flat across adults</strong>
+      Bodyweight, sex and age do not materially change the recommended dose for this ingredient set. Heavier users or those with established magnesium deficiency may benefit from the upper end (350 mg). A single 2-capsule serving of the evidence-supported formulation covers the full adult range.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <p class="section-sub">Rated against research tiers: Core / Primary / Secondary / Unproven.</p>
+    <div class="evidence-block">
+      <div class="evidence-item">
+        <div class="ev-ingredient">Melatonin</div>
+        <div class="ev-bar"><div class="ev-fill" style="width: 92%"></div></div>
+        <div class="ev-rating"><span>Strong</span><strong>Primary · time-to-sleep only</strong></div>
+        <div class="ev-note">Reliably shortens sleep onset. Does not improve sleep quality on its own.</div>
+      </div>
+      <div class="evidence-item">
+        <div class="ev-ingredient">Magnesium Glycinate</div>
+        <div class="ev-bar"><div class="ev-fill" style="width: 85%"></div></div>
+        <div class="ev-rating"><span>Strong</span><strong>Core · foundation</strong></div>
+        <div class="ev-note">Effective specifically in people with low dietary magnesium. Glycinate form is well-absorbed and gentle on the gut.</div>
+      </div>
+      <div class="evidence-item">
+        <div class="ev-ingredient">Tagar / Valerian</div>
+        <div class="ev-bar"><div class="ev-fill" style="width: 55%"></div></div>
+        <div class="ev-rating"><span>Moderate</span><strong>Secondary</strong></div>
+        <div class="ev-note">Improves subjective sleep quality in some studies. Mechanism uncertain. Interacts with the CYP3A4 liver enzyme and several pharmaceuticals.</div>
+      </div>
+      <div class="evidence-item">
+        <div class="ev-ingredient">Passion Flower</div>
+        <div class="ev-bar"><div class="ev-fill" style="width: 40%"></div></div>
+        <div class="ev-rating"><span>Weak – Moderate</span><strong>Supporting</strong></div>
+        <div class="ev-note">Traditional calmative with some evidence for reducing anxiety. Less direct evidence for sleep quality than melatonin or magnesium.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use & cycling</h2></div>
+    <p class="section-sub">Can it be taken every night?</p>
+    <div class="callout cyan">
+      <strong>Yes — with a planned pause.</strong>
+      The blend is safe for nightly use. Research specifically recommends pausing supplementation after about a month to assess whether unassisted sleep has improved. If effectiveness fades over weeks, drop to 3–5 nights a week.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">A small step to unwind. Take consistently 30 min before bed.</div></div>
+      <div class="day-step"><div class="day-num">Day 7</div><div class="day-text">Relaxation comes a little easier. Sleep onset typically shorter.</div></div>
+      <div class="day-step"><div class="day-num">Day 14</div><div class="day-text">Your mood lifts, sleep steadies. Consider a 2–3 night pause.</div></div>
+      <div class="day-step"><div class="day-num">Day 21</div><div class="day-text">It feels like second nature. Re-assess: continue, reduce, or cycle.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <p class="section-sub">Pregnancy, major health conditions, and known drug interactions. Consult a doctor before use if any apply.</p>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Avoid. Insufficient safety data on melatonin and valerian during pregnancy and lactation.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Children under 18</div><div class="safety-text">Not intended for minors without paediatric supervision, particularly for melatonin.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Blood thinners (warfarin, aspirin)</div><div class="safety-text">Valerian and passion flower may potentiate sedative and anticoagulant effects. Doctor consultation required.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Antidepressants & benzodiazepines</div><div class="safety-text">Valerian interacts with CYP3A4 and can amplify sedation from SSRIs, benzodiazepines and similar CNS depressants.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Autoimmune conditions</div><div class="safety-text">Melatonin may stimulate immune function; caution in autoimmune disease.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Kidney disease</div><div class="safety-text">Magnesium clearance depends on kidney function; dosing should be adjusted or supervised.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Driving & heavy machinery</div><div class="safety-text">Do not take before driving or operating machinery, especially the first dose.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">Well-tolerated at recommended doses. Mild side-effects: morning grogginess (melatonin) or loose stool (magnesium at higher doses).</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <p class="section-sub">Across the Day 21 launch range. Full matrix on the Stack tab.</p>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-space">Space them out</span><div><div class="stack-with">Not Just Magnesium</div><div class="stack-text">Overlap flag: this Sleep blend contains magnesium (120mg current / 200mg recommended). Taking both in the same evening could approach upper tolerable single-dose magnesium. Pick one, or take the magnesium product earlier in the day.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Omega</div><div class="stack-text">No interaction. Omega-3 absorbs with dinner fat; sleep blend at bedtime. Clean separation.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Skin</div><div class="stack-text">No interaction. Different pathways, different timing.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-space">Space them out</span><div><div class="stack-with">Bright Brew (caffeine + theanine)</div><div class="stack-text">Caffeine half-life is ~5 hours. Last Bright Brew by early afternoon to avoid pushing sleep onset later.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Creatine</div><div class="stack-text">No direct conflict. Creatine is best taken earlier in the day with carbs or protein.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">08</span><h2 class="section-title">Open questions</h2></div>
+    <ul class="q-list">
+      <li><strong>1. Can magnesium glycinate be raised to 200 mg elemental?</strong>Current 120 mg is below the effective range. At 200 mg this becomes a 2-capsule serving. Confirm feasibility with Essenza and Konark.</li>
+      <li><strong>2. Tagar extract standardisation?</strong>The effective dose is 450 mg standardised for 0.8–1% valerenic acids. Confirm our 300 mg spec's standardisation ratio — if it's a stronger extract, 300 mg may already be clinical.</li>
+      <li><strong>3. Keep Passion Flower, or swap for Lavender (Silexan 80 mg)?</strong>Lavender has stronger research backing for sleep-onset anxiety. Passion Flower is more familiar in the Indian market.</li>
+      <li><strong>4. If shipping the 1-capsule / current-spec version first, how do we frame the upgrade to 2-capsule at launch-v2?</strong>A planned evolution path vs. a formulation change that requires repositioning.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 02 — SKIN                           -->
+<!-- =========================================== -->
+<main class="product panel" id="skin">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 02 · Skin</div>
+      <div class="names">
+        <div class="name-nj">Not Just Collagen</div>
+        <div class="name-note">— emotional name pending; "Not Just" structure is the locked brand system</div>
+      </div>
+      <p class="product-line">A daily powder blend built around vegan collagen-boosting peptides, with glutathione, Vitamin C, zinc and hyaluronic acid each doing distinct jobs under the skin.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Powder (tub)</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">1 scoop</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">AM, with water</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">Yes, long-term</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">Skin supplements are under-researched compared to sleep or cardiovascular. Dosages are drawn from published clinical trials on collagen peptides, liposomal glutathione, and hyaluronic acid.</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Vegan Collagen (VC KON)</div><div class="ing-form">Plant-based collagen peptide builders</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">4000 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">2500 – 10000 mg</div><div class="dose-note">Most skin-benefit trials used 2.5–10 g collagen peptides daily for 8–12 weeks</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Within range. Vegan collagen is a builder blend rather than hydrolysed collagen; evidence is suggestive but not as strong as animal-derived peptides.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Liposomal Glutathione (Lipokon)</div><div class="ing-form">Master antioxidant, liposomal delivery</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">250 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">250 – 1000 mg</div><div class="dose-note">Skin-lightening and antioxidant trials used 250–500 mg daily; some higher</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Liposomal form has better oral bioavailability than standard glutathione. Current dose is at the lower end of the trial range.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Vitamin C</div><div class="ing-form">Ascorbic acid, collagen cofactor</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">200 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">100 – 500 mg</div><div class="dose-note">NIH RDA is 75–90 mg. Tolerable upper limit 2000 mg.</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Well within the effective range. Essential cofactor for collagen synthesis — the reason it's in a skin blend.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Zinc</div><div class="ing-form">Elemental zinc, mineral</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">10 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">8 – 40 mg</div><div class="dose-note">NIH RDA 8–11 mg; tolerable upper limit 40 mg for adults</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Conservative dose. Supports wound healing and collagen structure. Higher doses risk copper depletion over time.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Hyaluronic Acid</div><div class="ing-form">Oral HA, skin hydration</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">200 mg</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">120 – 240 mg</div><div class="dose-note">Japanese and Korean trials on skin hydration and wrinkles</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">At the upper end of clinical trial range. Oral HA improves skin moisture in 8–12 weeks.</div><span class="dose-flag match">● in range</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — and the powder format is the right choice here.</strong>
+      Total serving weight is ~4.7 g. That's impractical to put in capsules (would require 8–10 capsules). Powder tub format is correct. All ingredients are water-soluble or water-dispersible. Vitamin C mildly acidifies the mix, which can improve zinc absorption.
+    </div>
+    <div class="callout amber">
+      <strong>Taste and mixability</strong>
+      Liposomal glutathione and vegan collagen can have a mildly sulfurous or earthy taste. Plan for a flavour system — berry or citrus pairs well with vitamin C acidity. Avoid masking with high-dose sweeteners; the audience reads labels.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How much per serving?</h2></div>
+    <p class="section-sub">Current formulation already matches evidence-supported dosage. No gap.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Current = Recommended</div>
+        <div class="pill-card-label">Current = Evidence-supported</div>
+        <div class="pill-row-vis"><div class="sachet-icon" style="width: 52px; height: 62px;"></div></div>
+        <div class="pill-count">1 scoop (~5 g), once daily</div>
+        <div class="pill-detail">Mix with 200–250 ml water. Morning, with or without food. Consistency matters more than exact timing.</div>
+        <div class="pill-dose-delivered">
+          <strong>Delivers:</strong> Collagen 4000mg · Glutathione 250mg · Vit C 200mg · Zinc 10mg · HA 200mg
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Why powder, not pills</strong>
+      Collagen peptides require 2.5–10 g doses. That physical volume cannot fit in capsules without a 10+ capsule serving — unacceptable for daily compliance. Powder format is the only viable option.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <div class="evidence-block">
+      <div class="evidence-item"><div class="ev-ingredient">Vegan Collagen Builder</div><div class="ev-bar"><div class="ev-fill" style="width: 45%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Emerging</strong></div><div class="ev-note">Animal-derived hydrolysed collagen has stronger trial data. Vegan builder blends are newer; evidence is suggestive but not yet on par with bovine/marine collagen.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Liposomal Glutathione</div><div class="ev-bar"><div class="ev-fill" style="width: 60%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Growing evidence</strong></div><div class="ev-note">Multiple trials for skin lightening, antioxidant effect and melanin reduction. Liposomal delivery solves glutathione's historically poor oral absorption.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Vitamin C</div><div class="ev-bar"><div class="ev-fill" style="width: 88%"></div></div><div class="ev-rating"><span>Strong</span><strong>Established</strong></div><div class="ev-note">Essential cofactor for collagen synthesis. Well-documented role in skin health and antioxidant defence.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Zinc</div><div class="ev-bar"><div class="ev-fill" style="width: 80%"></div></div><div class="ev-rating"><span>Strong</span><strong>Established</strong></div><div class="ev-note">Strong evidence for wound healing, skin integrity, and acne reduction at higher doses.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Hyaluronic Acid</div><div class="ev-bar"><div class="ev-fill" style="width: 62%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Good evidence</strong></div><div class="ev-note">Oral HA trials show skin hydration and reduced wrinkle depth in 8–12 weeks. Mechanism debated (possibly signalling, not direct deposit).</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use & cycling</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — this is a long-term product.</strong>
+      Skin supplements show results at the 8–12 week mark and continue improving with use. Unlike sleep aids, cycling off is not advised — consistency is the whole mechanism.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">A daily ritual begins. Foundations being laid.</div></div>
+      <div class="day-step"><div class="day-num">Day 21</div><div class="day-text">Hydration may improve subtly. Skin feels less taut.</div></div>
+      <div class="day-step"><div class="day-num">Day 56</div><div class="day-text">Visible change window begins. Texture and tone shift.</div></div>
+      <div class="day-step"><div class="day-num">Day 84</div><div class="day-text">Full 12-week trial endpoint. Most studies end here.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Consult doctor. Most ingredients are considered safe but high-dose glutathione is under-studied in pregnancy.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Kidney disease</div><div class="safety-text">High Vitamin C intake can increase oxalate formation and kidney stone risk in susceptible individuals.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">On chemotherapy</div><div class="safety-text">Glutathione and high-dose antioxidants may interact with some chemotherapy protocols. Oncologist clearance required.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Iron supplementation</div><div class="safety-text">Zinc and iron compete for absorption. Take at least 2 hours apart.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">G6PD deficiency</div><div class="safety-text">Very high Vitamin C doses have been implicated in haemolysis in G6PD-deficient individuals. At 200 mg, this is low risk.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">Generally well-tolerated. Mild GI upset possible in the first week.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Omega</div><div class="stack-text">Synergistic. Omega-3 supports skin barrier function and reduces inflammation — complements the collagen and hydration work.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Magnesium</div><div class="stack-text">No interaction. Different pathways.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Rest Assured (Sleep)</div><div class="stack-text">Sleep quality affects skin repair. Different timing.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Bright Brew</div><div class="stack-text">No interaction. Different timing, different mechanisms.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Creatine</div><div class="stack-text">No interaction. Creatine's hydration and energy focus complements skin's long-term cellular work.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">08</span><h2 class="section-title">Open questions</h2></div>
+    <ul class="q-list">
+      <li><strong>1. Flavour system for the tub?</strong>Berry, citrus, or neutral? Audience reads labels; natural flavouring only.</li>
+      <li><strong>2. Scoop size standardisation?</strong>Confirm a 5 g scoop delivers the full ingredient spec reliably.</li>
+      <li><strong>3. Shelf life of liposomal glutathione in powder form?</strong>Liposomal actives can degrade faster than dry ingredients. Confirm stability at 24 months.</li>
+      <li><strong>4. Emotional product name?</strong>"Not Just Collagen" is locked in structure; emotional name (the "Rest Assured" equivalent) still to be developed.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 03 — ENERGY (BRIGHT BREW)          -->
+<!-- =========================================== -->
+<main class="product panel" id="energy">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 03 · Energy</div>
+      <div class="names">
+        <div class="name-emo">Bright Brew</div>
+        <div class="name-nj">Not Just Caffeine</div>
+        <div class="name-note">— Bright Brew is the locked product name per brand guidelines</div>
+      </div>
+      <p class="product-line">Picture this, the perfect caffeine high without the crash. Green tea caffeine paired with L-theanine for clean focus, plus a light hydration salt base.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Sachet (powder)</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">1 sachet</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">AM or early PM</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">2–3× / week</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">Caffeine alone is stimulation. Caffeine with L-theanine is focus without the jitter — and the evidence for the pairing is strong.</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Caffeine (from green tea extract)</div><div class="ing-form">Natural caffeine + EGCG background</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">100 – 200 mg</div><div class="dose-note">Per serving, 1–2× daily. Keep below 400 mg/day total.</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Launch dose suggestion: 100 mg (roughly one strong cup of coffee). Accessible for Indian consumers new to functional caffeine drinks.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">L-Theanine</div><div class="ing-form">Calming amino acid, tea-derived</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">100 – 200 mg</div><div class="dose-note">1:1 ratio with caffeine is the synergistic sweet spot</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Theanine smooths caffeine without killing the focus benefit. The 1:1 ratio is what makes this different from regular coffee.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Hydration salts</div><div class="ing-form">Sodium, potassium, magnesium</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">200 – 500 mg Na, 100 – 300 mg K</div><div class="dose-note">Light hydration, not WHO ORS levels</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Positioning lever — focus drink, not sports drink. Keep salts light so the mouthfeel stays clean.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <div class="callout cyan">
+      <strong>This is one of the most well-studied stimulant blends in the literature.</strong>
+      Caffeine + L-theanine is not just compatible — the two are synergistic for focus and attention. Hydration salts are inert and dissolve cleanly. Green tea extract brings a background of catechins (including EGCG) which may support fat metabolism.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How much per serving?</h2></div>
+    <p class="section-sub">Current formulation spec is TBD. Shown here is the evidence-supported target.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Recommended</div>
+        <div class="pill-card-label">Evidence-supported formulation</div>
+        <div class="pill-row-vis"><div class="sachet-icon"></div></div>
+        <div class="pill-count">1 sachet (~3–5 g)</div>
+        <div class="pill-detail">Mix with 200–300 ml cold water. Best in the morning or pre-workout. Not after 2pm — caffeine half-life will push into sleep window.</div>
+        <div class="pill-dose-delivered">
+          <strong>Target delivers:</strong> Caffeine 100mg · L-Theanine 100mg · Sodium ~300mg · Potassium ~150mg
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <div class="evidence-block">
+      <div class="evidence-item"><div class="ev-ingredient">Caffeine</div><div class="ev-bar"><div class="ev-fill" style="width: 95%"></div></div><div class="ev-rating"><span>Very Strong</span><strong>Primary</strong></div><div class="ev-note">One of the best-researched stimulants in human history. Reliable effects on alertness and attention; mild fat-loss effects in non-habituated users.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">L-Theanine</div><div class="ev-bar"><div class="ev-fill" style="width: 78%"></div></div><div class="ev-rating"><span>Strong</span><strong>Primary (with caffeine)</strong></div><div class="ev-note">Strong evidence for synergy with caffeine on focus. Weak evidence for standalone effects.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Hydration Salts</div><div class="ev-bar"><div class="ev-fill" style="width: 72%"></div></div><div class="ev-rating"><span>Strong</span><strong>Well-established</strong></div><div class="ev-note">Basic electrolyte supplementation is well-understood. At light doses, supports mild rehydration — not athletic performance.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Green tea catechins (EGCG)</div><div class="ev-bar"><div class="ev-fill" style="width: 55%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Secondary</strong></div><div class="ev-note">Background catechins from green tea extract provide mild fat-metabolism support. Not the hero, but a bonus.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use & cycling</h2></div>
+    <div class="callout amber">
+      <strong>Not for daily use — cycling is required.</strong>
+      Caffeine's non-tolerance-building effects (stimulation, focus) fade with daily use. The brand-honest position is to recommend 2–3 uses per week, keeping it a "boost" rather than a dependence. Daily coffee drinkers should not use this in addition.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">Clean energy arc. Steady focus for 3–4 hours.</div></div>
+      <div class="day-step"><div class="day-num">Week 1</div><div class="day-text">Use 2–3 times on high-demand days. Notice the difference.</div></div>
+      <div class="day-step"><div class="day-num">Week 4</div><div class="day-text">Effects remain strong because use is spaced.</div></div>
+      <div class="day-step"><div class="day-num">Week 12</div><div class="day-text">Still a tool, not a habit.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Keep caffeine under 200 mg/day. Many OB-GYNs advise avoiding caffeine supplements entirely in favour of monitored intake from coffee/tea.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Heart arrhythmia / uncontrolled hypertension</div><div class="safety-text">Caffeine raises heart rate and blood pressure. Avoid until cleared by a cardiologist.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Anxiety disorders / panic disorder</div><div class="safety-text">Caffeine can trigger panic episodes. Theanine partially offsets this but not for clinically anxious users.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">MAOI antidepressants</div><div class="safety-text">Dangerous interaction. Absolute contraindication.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Lithium</div><div class="safety-text">Caffeine affects lithium clearance. Keep intake consistent or consult doctor.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Tizanidine, quinolone antibiotics</div><div class="safety-text">Interact with caffeine metabolism. Avoid during treatment course.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Hypertension (controlled)</div><div class="safety-text">Start at lowest dose. Monitor BP response.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">Well-tolerated. Theanine is the key reason this causes less jitter than coffee at equivalent caffeine dose.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-space">Space them out</span><div><div class="stack-with">Rest Assured (Sleep)</div><div class="stack-text">Caffeine half-life ~5 hours. Stop Bright Brew by 2pm if taking Sleep blend at 10pm.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-space">Space them out</span><div><div class="stack-with">Not Just Creatine</div><div class="stack-text">High-dose caffeine may partially negate creatine during loading. Take them several hours apart or skip loading phase.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Skin</div><div class="stack-text">No interaction. Both morning-friendly.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Omega</div><div class="stack-text">No interaction. Omega takes with food.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Magnesium</div><div class="stack-text">Magnesium is typically bedtime; Bright Brew is morning. Clean separation.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">08</span><h2 class="section-title">Open questions</h2></div>
+    <ul class="q-list">
+      <li><strong>1. Caffeine dose lock — 100 mg or 150 mg per sachet?</strong>100 mg is accessible for new users; 150 mg is closer to a strong coffee and more effective for regular drinkers.</li>
+      <li><strong>2. Green tea extract vs. synthetic caffeine?</strong>Green tea brings EGCG bonus and aligns with "Bright Brew" naming. Synthetic caffeine is cheaper and more consistent.</li>
+      <li><strong>3. Sachet weight target — 3 g or 5 g?</strong>Lower weight = premium feel, faster dissolve. Higher weight = more room for flavour system.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 04 — MAGNESIUM                     -->
+<!-- =========================================== -->
+<main class="product panel" id="magnesium">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 04 · Magnesium</div>
+      <div class="names">
+        <div class="name-nj">Not Just Magnesium</div>
+        <div class="name-note">— "Not Just Magnesium" is the example in brand guidelines; emotional name pending</div>
+      </div>
+      <p class="product-line">But with a four-form magnesium blend to work on sleep, muscle relaxation, mood and energy. A standalone magnesium product for anyone not on the Sleep blend, or who wants higher daily doses.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Capsule</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">2 caps</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">Evening</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">Yes</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">A four-form magnesium blend hits multiple pathways: glycinate (calm, sleep), taurate (cardiovascular, stress), malate (energy), and a small amount of oxide.</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Magnesium (total elemental, four-form)</div><div class="ing-form">Glycinate + Taurate + Malate + Oxide</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">200 – 400 mg</div><div class="dose-note">Elemental magnesium, split dose preferred for higher amounts</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Suggested 300 mg elemental target. Glycinate as the bulk for tolerability, with taurate, malate and oxide in smaller portions.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top: 20px;">
+      <strong>On the four forms, briefly</strong>
+      <strong style="display: inline; font-size: 14px;">Glycinate</strong> — most studied for sleep and anxiety; gentle on gut.<br>
+      <strong style="display: inline; font-size: 14px;">Taurate</strong> — cardiovascular and stress research, pairs with calming effect.<br>
+      <strong style="display: inline; font-size: 14px;">Malate</strong> — energy and muscle pain research (fibromyalgia).<br>
+      <strong style="display: inline; font-size: 14px;">Oxide</strong> — lowest bioavailability but highest elemental content per mg of compound. Kept as cost balancer and mild laxative effect.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — multi-form magnesium is an established category.</strong>
+      All four forms are chemically compatible in a single capsule. The liposomal delivery (per current spec) adds manufacturing complexity but improves total absorption. Glycinate should remain the dominant form.
+    </div>
+    <div class="callout amber">
+      <strong>Avoid concurrent high-dose mineral stacks</strong>
+      At combined doses above 800 mg, magnesium competes with calcium, zinc and iron for absorption. The 10 mg zinc in Not Just Collagen is well below that threshold, but flag it for users adding third-party multivitamins.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How many pills?</h2></div>
+    <p class="section-sub">Current formulation spec is TBD. Shown here is the evidence-supported target.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Recommended</div>
+        <div class="pill-card-label">Evidence-supported formulation</div>
+        <div class="pill-row-vis"><div class="pill-icon"></div><div class="pill-icon"></div></div>
+        <div class="pill-count">2 capsules, once daily</div>
+        <div class="pill-detail">Evening, 30–60 minutes before bed. With or without food. Two capsules because total compound weight ~1.8 g across four forms exceeds a single capsule's fill.</div>
+        <div class="pill-dose-delivered">
+          <strong>Target delivers:</strong> 300mg elemental Mg (approx. 180 glycinate + 60 taurate + 40 malate + 20 oxide)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <div class="evidence-block">
+      <div class="evidence-item"><div class="ev-ingredient">Magnesium Glycinate (sleep, anxiety)</div><div class="ev-bar"><div class="ev-fill" style="width: 85%"></div></div><div class="ev-rating"><span>Strong</span><strong>Core</strong></div><div class="ev-note">Well-researched for sleep quality and anxiety reduction, especially in deficient populations.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Magnesium Taurate (cardio, stress)</div><div class="ev-bar"><div class="ev-fill" style="width: 55%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Promising</strong></div><div class="ev-note">Animal and small human studies for BP and cardiovascular support. Taurine itself has cardiovascular evidence.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Magnesium Malate (energy, muscle)</div><div class="ev-bar"><div class="ev-fill" style="width: 50%"></div></div><div class="ev-rating"><span>Moderate</span><strong>Niche</strong></div><div class="ev-note">Limited but suggestive evidence in fibromyalgia. Malate plays a role in cellular energy (Krebs cycle).</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Magnesium Oxide</div><div class="ev-bar"><div class="ev-fill" style="width: 30%"></div></div><div class="ev-rating"><span>Weak</span><strong>Poor absorption</strong></div><div class="ev-note">Low bioavailability. Useful mainly for mild constipation relief via osmotic effect. Kept as cost balancer.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — long-term daily use is safe and often beneficial.</strong>
+      Unlike the Sleep blend, pure magnesium doesn't need cycling. Most Indian diets are magnesium-deficient, so ongoing supplementation is appropriate.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">Quietly starts replenishing. No immediate sensation.</div></div>
+      <div class="day-step"><div class="day-num">Day 7</div><div class="day-text">Muscle tension may ease. Sleep may steady.</div></div>
+      <div class="day-step"><div class="day-num">Day 14</div><div class="day-text">Baseline energy and mood may lift subtly.</div></div>
+      <div class="day-step"><div class="day-num">Day 21</div><div class="day-text">A steady floor, not a ceiling. Keep going.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Magnesium is generally safe and often deficient in pregnancy. Consult OB before starting.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Severe kidney disease</div><div class="safety-text">Kidneys clear magnesium. Impaired function can lead to dangerous accumulation.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Tetracycline/quinolone antibiotics</div><div class="safety-text">Magnesium reduces absorption. Take 6 hours apart from these antibiotics.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Bisphosphonates (osteoporosis)</div><div class="safety-text">Magnesium reduces absorption of these drugs. Separate by 2+ hours.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Low blood pressure</div><div class="safety-text">Magnesium can mildly lower BP. Monitor if already hypotensive.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">Very well-tolerated. Mild loose stool at doses above 400 mg is the most common side effect — split dose if it occurs.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-skip">Avoid together</span><div><div class="stack-with">Rest Assured (Sleep)</div><div class="stack-text">Both contain magnesium. Combined, you could exceed tolerable single-dose limits. Pick one or split timing.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Omega</div><div class="stack-text">No interaction. Different pathways.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Collagen (Skin)</div><div class="stack-text">Skin product's 10 mg zinc is well below the interference threshold with 300 mg magnesium.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Bright Brew</div><div class="stack-text">Different timing (AM vs PM). No interaction.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Creatine</div><div class="stack-text">Different timing. Creatine with breakfast/workout; magnesium at bedtime.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">08</span><h2 class="section-title">Open questions</h2></div>
+    <ul class="q-list">
+      <li><strong>1. Confirm total elemental magnesium target — 300 mg or 400 mg?</strong>400 mg covers deficient users but may cause loose stool for some. 300 mg is safer launch positioning.</li>
+      <li><strong>2. Confirm split across four forms.</strong>Recommend glycinate as majority share for tolerability.</li>
+      <li><strong>3. Is liposomal delivery necessary for glycinate?</strong>Glycinate is already well-absorbed. Liposomal adds cost without clear benefit for this form.</li>
+      <li><strong>4. Emotional product name?</strong>"Not Just Magnesium" is locked; emotional name still to be developed.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 05 — OMEGA                         -->
+<!-- =========================================== -->
+<main class="product panel" id="omega">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 05 · Omega</div>
+      <div class="names">
+        <div class="name-nj">Not Just Omega</div>
+        <div class="name-note">— emotional name pending; "Not Just" structure is locked</div>
+      </div>
+      <p class="product-line">Three cardiovascular ingredients doing three different jobs. Algal omega-3 for anti-inflammatory support, Vitamin K2 MK-7 for arterial calcification, and CoQ10 ubiquinol for cellular energy — all vegan-friendly.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Softgel</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">2 softgels</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">With dinner (fat)</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">Yes, long-term</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">A preventive cardiovascular stack. Each ingredient targets a distinct mechanism: inflammation (omega-3), arterial stiffness (K2), mitochondrial function (CoQ10).</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Algal Omega-3 (EPA + DHA)</div><div class="ing-form">Vegan marine source, schizochytrium algae</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">300 – 600 mg combined EPA+DHA</div><div class="dose-note">For general cardiovascular support. 4g for clinical triglyceride lowering.</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Suggested 500 mg combined EPA+DHA target — covers general support, leaves clinical doses to a medical route. Algal source is a vegan differentiator.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Vitamin K2 (MK-7)</div><div class="ing-form">Menaquinone-7, natto-derived</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">180 – 200 mcg</div><div class="dose-note">MK-7 with a meal containing fat</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">MK-7 is the preferred K2 form — longer half-life, better for arterial calcification research. 200 mcg is the standard clinical dose.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">CoQ10 (Ubiquinol)</div><div class="ing-form">Reduced, more bioavailable CoQ10</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">90 – 150 mg</div><div class="dose-note">Once daily with a fat-containing meal</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Ubiquinol (reduced form) has better absorption than ubiquinone, especially for users over 35 where natural CoQ10 production drops.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — softgel format is ideal for this blend.</strong>
+      All three ingredients are fat-soluble and benefit from oil-based delivery. Softgel format ensures absorption with the algal oil acting as the carrier. No known interactions between the three.
+    </div>
+    <div class="callout amber">
+      <strong>B12 cannot join this softgel</strong>
+      You'd previously flagged adding B12 to the lineup. Important note: B12 is water-soluble and cannot go in an oil-based softgel. It would need to be a separate product or dual-pack.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How many softgels?</h2></div>
+    <p class="section-sub">Current formulation spec is TBD. Shown here is the evidence-supported target.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Recommended</div>
+        <div class="pill-card-label">Evidence-supported formulation</div>
+        <div class="pill-row-vis"><div class="softgel-icon"></div><div class="softgel-icon"></div></div>
+        <div class="pill-count">2 softgels, once daily</div>
+        <div class="pill-detail">With dinner. The fat in the meal improves absorption for all three fat-soluble ingredients.</div>
+        <div class="pill-dose-delivered">
+          <strong>Target delivers:</strong> EPA+DHA 500mg · Vitamin K2 MK-7 200mcg · CoQ10 Ubiquinol 100mg
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <div class="evidence-block">
+      <div class="evidence-item"><div class="ev-ingredient">Omega-3 (EPA + DHA)</div><div class="ev-bar"><div class="ev-fill" style="width: 88%"></div></div><div class="ev-rating"><span>Strong</span><strong>Primary</strong></div><div class="ev-note">Well-documented for triglyceride reduction, anti-inflammatory effects, and general cardiovascular support. Recent large trials question heart-attack prevention specifically.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Vitamin K2 MK-7</div><div class="ev-bar"><div class="ev-fill" style="width: 68%"></div></div><div class="ev-rating"><span>Moderate – Strong</span><strong>Primary (preventive)</strong></div><div class="ev-note">Good evidence for reducing arterial calcification and supporting bone mineralisation. Unlike MK-4, MK-7 has been used in arterial stiffness trials.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">CoQ10 Ubiquinol</div><div class="ev-bar"><div class="ev-fill" style="width: 72%"></div></div><div class="ev-rating"><span>Moderate – Strong</span><strong>Primary (post-cardiac, aging)</strong></div><div class="ev-note">Strong evidence for post-heart-attack protection. Moderate for general preventive use. Natural levels drop after 35 and with statin use.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — this is a long-term, preventive product.</strong>
+      All three ingredients are intended for ongoing use. Cardiovascular effects accrue over months to years. Cycling off provides no benefit.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">Invisible work begins. Anti-inflammatory baseline shifts.</div></div>
+      <div class="day-step"><div class="day-num">Month 1</div><div class="day-text">Triglyceride and inflammation markers may begin improving.</div></div>
+      <div class="day-step"><div class="day-num">Month 3</div><div class="day-text">Measurable biomarker improvements in blood tests.</div></div>
+      <div class="day-step"><div class="day-num">Year 1+</div><div class="day-text">Long-term cardiovascular protection compounds.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Blood thinners (warfarin especially)</div><div class="safety-text">Critical interaction. Vitamin K2 directly opposes warfarin's mechanism. Omega-3 also has mild anticoagulant effect. Absolute contraindication without specialist supervision.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Antiplatelet drugs (aspirin, clopidogrel)</div><div class="safety-text">Omega-3 can prolong bleeding time when combined. Doctor supervision required.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Pre-surgery (2 weeks before)</div><div class="safety-text">Stop omega-3 at least 2 weeks before any elective surgery due to bleeding risk.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Omega-3 is often recommended in pregnancy. K2 and CoQ10 have limited pregnancy data — consult doctor.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Statin users</div><div class="safety-text">Statins deplete CoQ10. Including CoQ10 is often recommended but discuss timing with your cardiologist.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Diabetes</div><div class="safety-text">Omega-3 may slightly raise fasting blood sugar. Monitor if diabetic.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">Excellent safety profile. "Fishy burps" are the most common issue — algal sourcing eliminates this almost entirely.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Rest Assured (Sleep)</div><div class="stack-text">No interaction. Different timing (dinner vs bedtime).</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Collagen (Skin)</div><div class="stack-text">Synergistic. Omega-3 reduces skin inflammation; complements the collagen and hydration work.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Magnesium</div><div class="stack-text">No interaction.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Bright Brew</div><div class="stack-text">No interaction. Clean timing separation.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Creatine</div><div class="stack-text">No interaction. Creatine's recovery benefits complement cardio support.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">08</span><h2 class="section-title">Open questions</h2></div>
+    <ul class="q-list">
+      <li><strong>1. Confirm algal oil source and EPA:DHA split.</strong>Algal oil is commonly DHA-dominant. Confirm the exact ratio delivered.</li>
+      <li><strong>2. Softgel capacity.</strong>Combined fill is ~700–900 mg plus oil carrier. Confirm 2 softgels is correct vs 1 larger softgel.</li>
+      <li><strong>3. K2 MK-7 stability with CoQ10 and algal oil.</strong>Confirm no degradation in the softgel matrix over 24 months.</li>
+      <li><strong>4. Emotional product name?</strong>"Not Just Omega" is locked; emotional name still to be developed.</li>
+    </ul>
+  </section>
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 06 — CREATINE                      -->
+<!-- =========================================== -->
+<main class="product panel" id="creatine">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Product 06 · Creatine</div>
+      <div class="names">
+        <div class="name-nj">Not Just Creatine</div>
+        <div class="name-note">— emotional name pending; "Not Just" structure is locked</div>
+      </div>
+      <p class="product-line">Strength and mental clarity that build quietly in the background. Creatine monohydrate in a dissolvable sachet, with a light hydration salt base — because creatine in pill form is a solubility problem waiting to happen.</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick"><div class="quick-label">Format</div><div class="quick-value">Sachet (powder)</div></div>
+      <div class="quick"><div class="quick-label">Serving</div><div class="quick-value">1 sachet</div></div>
+      <div class="quick"><div class="quick-label">Timing</div><div class="quick-value">AM or post-workout</div></div>
+      <div class="quick"><div class="quick-label">Daily use</div><div class="quick-value">Yes, long-term</div></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">The blend</h2></div>
+    <p class="section-sub">Creatine monohydrate is the most-researched supplement in sports science. Everything else in the sachet is carrier and palatability.</p>
+    <div class="ingredients">
+      <div class="ing-head"><div>Ingredient</div><div>Current spec</div><div>Evidence-supported dosage</div><div>Notes</div></div>
+      <div class="ing-row">
+        <div><div class="ing-name">Creatine Monohydrate (CreaPure)</div><div class="ing-form">Pure creatine, German-certified grade</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">3 – 5 g daily</div><div class="dose-note">Loading phase (20 g × 5 days) is optional, not required</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">5 g is the standard maintenance dose with decades of safety and efficacy data. CreaPure is the gold-standard source.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+      <div class="ing-row">
+        <div><div class="ing-name">Hydration salts</div><div class="ing-form">Sodium, potassium</div></div>
+        <div><div class="ing-cell-label">Current spec</div><div class="dose-current">TBD</div></div>
+        <div><div class="ing-cell-label">Evidence-supported</div><div class="dose-examine">200 – 500 mg Na</div><div class="dose-note">Creatine causes cellular water retention; light salts support this</div></div>
+        <div><div class="ing-cell-label">Notes</div><div class="dose-note">Functional role: creatine pulls water into muscle cells; hydration salts support the osmotic balance. Also improves solubility.</div><span class="dose-flag na">● spec TBD</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Do they blend well?</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — and the sachet format solves a real Indian-market problem.</strong>
+      Creatine monohydrate in pill form is widely disliked in India — grainy, hard to swallow, and multi-pill serving is required. A dissolvable sachet is the correct format. Adding hydration salts improves mouthfeel and solubility.
+    </div>
+    <div class="callout amber">
+      <strong>Creatine solubility note</strong>
+      Creatine dissolves better in warm water than cold. Packaging should instruct users to stir for 20–30 seconds. Cold milk works too but may produce a chalky mouthfeel.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">How much per serving?</h2></div>
+    <p class="section-sub">Current formulation spec is TBD. Shown here is the evidence-supported target.</p>
+
+    <div class="pill-compare">
+      <div class="pill-card recommended">
+        <div class="pill-card-tag">Recommended</div>
+        <div class="pill-card-label">Evidence-supported formulation</div>
+        <div class="pill-row-vis"><div class="sachet-icon"></div></div>
+        <div class="pill-count">1 sachet (~5.5 g)</div>
+        <div class="pill-detail">Mix with 200–300 ml water or juice. Morning, or post-workout. Timing matters less than consistency — results come from total daily dose.</div>
+        <div class="pill-dose-delivered">
+          <strong>Target delivers:</strong> Creatine Monohydrate 5g · Sodium ~300mg · Potassium ~150mg
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Dosage is flat across adults</strong>
+      Most people do fine on 5 g/day regardless of weight or sex. Those with more muscle mass may benefit from up to 10 g/day (2 sachets), but evidence for this is weaker.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Evidence strength per ingredient</h2></div>
+    <div class="evidence-block">
+      <div class="evidence-item"><div class="ev-ingredient">Creatine Monohydrate</div><div class="ev-bar"><div class="ev-fill" style="width: 98%"></div></div><div class="ev-rating"><span>Very Strong</span><strong>Core</strong></div><div class="ev-note">Arguably the most-studied supplement in sports science. Reliable effects on strength, power output, and muscle mass. Emerging evidence for cognitive benefits, particularly in vegetarians/vegans and seniors.</div></div>
+      <div class="evidence-item"><div class="ev-ingredient">Hydration Salts</div><div class="ev-bar"><div class="ev-fill" style="width: 72%"></div></div><div class="ev-rating"><span>Strong</span><strong>Supporting</strong></div><div class="ev-note">Basic electrolyte science. Supports the cellular water shifts that creatine induces.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Daily use</h2></div>
+    <div class="callout cyan">
+      <strong>Yes — creatine is the single most long-term-use-friendly supplement in this lineup.</strong>
+      Decades of safety data support daily use. Effects require consistency — creatine stores build gradually and deplete if you stop. No cycling needed.
+    </div>
+    <div class="day-arc">
+      <div class="day-step"><div class="day-num">Day 1</div><div class="day-text">Creatine stores begin filling. No immediate effect.</div></div>
+      <div class="day-step"><div class="day-num">Week 2</div><div class="day-text">Muscle cells approach full saturation. Strength may notch up.</div></div>
+      <div class="day-step"><div class="day-num">Week 4</div><div class="day-text">Full effect established. Recovery feels easier.</div></div>
+      <div class="day-step"><div class="day-num">Year 1+</div><div class="day-text">Long-term benefits continue. Cognitive benefits may emerge.</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">06</span><h2 class="section-title">Safety & who should not take this</h2></div>
+    <div class="safety-grid">
+      <div class="safety-item"><div class="safety-dot dot-red"></div><div><div class="safety-cond">Kidney disease</div><div class="safety-text">Creatine raises creatinine markers in blood tests. Not inherently harmful in healthy kidneys, but those with existing kidney disease should avoid or consult nephrologist.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Pregnancy & breastfeeding</div><div class="safety-text">Limited data. Most clinicians recommend pausing during pregnancy out of caution.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Children under 18</div><div class="safety-text">Generally not recommended without medical supervision. Most trials are in adults.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Diuretics or dehydration risk</div><div class="safety-text">Creatine increases water needs. Ensure adequate hydration, especially in hot climates.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-amber"></div><div><div class="safety-cond">Blood test timing</div><div class="safety-text">Stop 3–5 days before creatinine-based kidney function blood tests to avoid false elevations.</div></div></div>
+      <div class="safety-item"><div class="safety-dot dot-green"></div><div><div class="safety-cond">Healthy adults</div><div class="safety-text">One of the safest, best-studied supplements available. Mild GI upset possible at first week if doses are taken without water.</div></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">07</span><h2 class="section-title">What to pair it with</h2></div>
+    <div class="stack-list">
+      <div class="stack-item"><span class="stack-badge badge-space">Space them out</span><div><div class="stack-with">Bright Brew (caffeine)</div><div class="stack-text">High-dose caffeine may partially negate creatine during a loading phase. Take them several hours apart or skip loading.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Rest Assured (Sleep)</div><div class="stack-text">No interaction. Creatine is morning; Sleep is night.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Collagen (Skin)</div><div class="stack-text">No interaction. Both AM-friendly.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Magnesium</div><div class="stack-text">No interaction. Different timing.</div></div></div>
+      <div class="stack-item"><span class="stack-badge badge-pair">Pairs well</span><div><div class="stack-with">Not Just Omega</div><div class="stack-text">No interaction. Different timing, complementary recovery support.</div></div></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- =========================================== -->
+<!-- PRODUCT 07 — STACK MATRIX                  -->
+<!-- =========================================== -->
+<main class="product panel" id="stack">
+
+  <div class="product-header">
+    <div>
+      <div class="product-id">Stack · Compatibility Matrix</div>
+      <div class="names">
+        <div class="name-emo">The whole system</div>
+        <div class="name-nj">Which products work together</div>
+      </div>
+      <p class="product-line">A one-look summary of which Day 21 products pair cleanly, which need to be spaced out through the day, and which should be picked as one or the other. Read each row against each column.</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">01</span><h2 class="section-title">Compatibility matrix</h2></div>
+    <p class="section-sub">Green = pairs cleanly, no conflict. Amber = take with time separation. Red = pick one or consult before combining.</p>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Sleep</th>
+            <th>Skin</th>
+            <th>Energy</th>
+            <th>Magnesium</th>
+            <th>Omega</th>
+            <th>Creatine</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sleep</td>
+            <td><span class="m-self">—</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-space">Space</span></td>
+            <td><span class="m-cell m-skip">Pick one</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+          </tr>
+          <tr>
+            <td>Skin</td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-self">—</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+          </tr>
+          <tr>
+            <td>Energy</td>
+            <td><span class="m-cell m-space">Space</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-self">—</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-space">Space</span></td>
+          </tr>
+          <tr>
+            <td>Magnesium</td>
+            <td><span class="m-cell m-skip">Pick one</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-self">—</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+          </tr>
+          <tr>
+            <td>Omega</td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-self">—</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+          </tr>
+          <tr>
+            <td>Creatine</td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-space">Space</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-cell m-pair">Pair</span></td>
+            <td><span class="m-self">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--green)"></div>Pair — no conflict, take together or any time</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--amber)"></div>Space — separate by 4+ hours</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--red)"></div>Pick one — overlap or interaction risk</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">02</span><h2 class="section-title">Why Magnesium and Sleep are a "pick one"</h2></div>
+    <div class="callout amber">
+      <strong>Magnesium overlap is the only red cell in the matrix.</strong>
+      The Sleep blend contains magnesium (120 mg current / 200 mg recommended). The standalone Magnesium product contains ~300 mg. Taking both in the same evening approaches the upper tolerable dose and significantly raises the chance of loose stool. The quiz logic should route a user toward one or the other based on their primary goal — sleep quality (Sleep) or general magnesium replenishment (Magnesium).
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">03</span><h2 class="section-title">Why Energy and Creatine need spacing</h2></div>
+    <div class="callout amber">
+      <strong>Creatine and caffeine have a timing nuance.</strong>
+      Evidence suggests that high-dose caffeine (above 5 mg/kg bodyweight) taken at the same time as creatine during a loading phase can partially blunt creatine's effects. The practical solution: take them 3+ hours apart, or skip the loading phase entirely and stick to a daily 5 g maintenance dose. For maintenance-dose users, this is a minor concern.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">04</span><h2 class="section-title">Why Energy and Sleep need spacing</h2></div>
+    <div class="callout amber">
+      <strong>Simple caffeine half-life math.</strong>
+      Caffeine's half-life is ~5 hours. If a user takes Bright Brew at 9am, half the caffeine is still circulating at 2pm. If taken at 1pm, ~40mg of a 100mg dose is still active at bedtime. Rule: no Bright Brew after 2pm if Sleep blend is also being taken.
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><span class="section-num">05</span><h2 class="section-title">Ideal daily routine for a user taking all six</h2></div>
+    <div class="ingredients">
+      <div class="ing-row" style="grid-template-columns: 100px 1fr;">
+        <div style="font-family: var(--display); font-size: 16px; color: var(--cyan-ink);">07:00 AM</div>
+        <div><strong>Not Just Collagen</strong> — 1 scoop mixed with water, on empty or light stomach</div>
+      </div>
+      <div class="ing-row" style="grid-template-columns: 100px 1fr;">
+        <div style="font-family: var(--display); font-size: 16px; color: var(--cyan-ink);">08:00 AM</div>
+        <div><strong>Bright Brew</strong> (use 2–3 days/week only) — 1 sachet with breakfast</div>
+      </div>
+      <div class="ing-row" style="grid-template-columns: 100px 1fr;">
+        <div style="font-family: var(--display); font-size: 16px; color: var(--cyan-ink);">09:00 AM</div>
+        <div><strong>Not Just Creatine</strong> — 1 sachet, ideally an hour after Bright Brew</div>
+      </div>
+      <div class="ing-row" style="grid-template-columns: 100px 1fr;">
+        <div style="font-family: var(--display); font-size: 16px; color: var(--cyan-ink);">08:00 PM</div>
+        <div><strong>Not Just Omega</strong> — 2 softgels with dinner</div>
+      </div>
+      <div class="ing-row" style="grid-template-columns: 100px 1fr;">
+        <div style="font-family: var(--display); font-size: 16px; color: var(--cyan-ink);">10:30 PM</div>
+        <div><strong>Rest Assured</strong> OR <strong>Not Just Magnesium</strong> — 2 capsules, 30 minutes before bed</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="source-note">
+    <strong>A note on evidence-supported dosage</strong>
+    The "Evidence-supported dosage" column throughout this document draws primarily from Examine.com's peer-reviewed research compilation — an independent, non-commercial synthesis of published clinical evidence. Where an ingredient is not covered by Examine (notably skin ingredients like vegan collagen peptides, hyaluronic acid and liposomal glutathione), dosages are taken from published clinical trials, the NIH Office of Dietary Supplements fact sheets, and the Memorial Sloan Kettering integrative medicine database. Citations are not linked because URLs break over time; sources can be located by title.
+  </div>
+  <br>
+  <strong>Day 21 · Internal reference document, v2.0</strong><br>
+  Product names are indicative and not locked. Where only the "Not Just [ingredient]" name is shown, the emotional name is still to be developed. Dosages marked "in range" fall within published evidence ranges; "underdosed" or "TBD" flags are formulation questions for the manufacturing partners. Safety information is not medical advice — consumers with medical conditions or taking medications should consult a healthcare provider before supplementation.
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  const hamburger = document.getElementById('hamburger');
+  const tabsNav = document.getElementById('tabs');
+
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.target;
+      tabs.forEach(x => x.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      tabsNav.classList.remove('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  hamburger.addEventListener('click', () => {
+    tabsNav.classList.toggle('open');
+  });
+</script>
+
+</body>
+</html>
